@@ -1,0 +1,32 @@
+version: "3"
+services:
+  client:
+    build: ./client
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: always
+    ports:
+      - "80:80"
+      - "8080:8080"
+    depends_on:
+      - jaxrs
+  hashgraph:
+    build: "./hashgraph workspace"
+    deploy:
+      replicas: 1
+      restart_policy: 
+        condition: always   
+    ports: 
+      - "51200-51299:51200-51299"
+      - "52200-52299:52200-52299"
+  jaxrs:
+    build: "./jaxrs workspace"
+    depends_on:
+      - hashgraph
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: always    
+    ports:
+     - "8888:8080"    

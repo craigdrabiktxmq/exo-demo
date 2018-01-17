@@ -1,0 +1,6 @@
+{
+  "loadConfigFrom": null,
+  "defaultNodes": ["http://localhost:52204", "http://localhost:52207"],
+  "apiPath": "/HashgraphZoo/1.0.0",
+  "endpointsServicePath": "/endpoints"
+}
