@@ -8,7 +8,9 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.PrintWriter;
 import java.io.Serializable;
+import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.net.SocketAddress;
 import java.net.UnknownHostException;
 import java.security.KeyManagementException;
 import java.security.KeyStore;
@@ -17,21 +19,37 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManagerFactory;
 
+import com.txmq.exo.messaging.routing.*;
 import com.txmq.socketdemo.SocketDemoTransactionTypes;
 
 public class SwirldsAdaptor {
-	//public static final String HOST = "0.0.0.0";
-	public static final String HOST = "hashgraph";
-	public static final int PORT = 51204;
+	
+	private static INodeRouter nodeRouter;
 	
 	private Socket socket;
+	
 	public SwirldsAdaptor() {
+		//Set up the list of available nodes
+		//TODO:  Move this into a config file
+		List<SocketAddress> nodes = new ArrayList<SocketAddress>();
+		nodes.add(new InetSocketAddress("localhost", 51204));
+		nodes.add(new InetSocketAddress("localhost", 51205));
+		nodes.add(new InetSocketAddress("localhost", 51206));
+		nodes.add(new InetSocketAddress("localhost", 51207));
+		
+		if (SwirldsAdaptor.nodeRouter == null) {
+			SwirldsAdaptor.nodeRouter = new FixedNodeRouter();
+			SwirldsAdaptor.nodeRouter.setAvailableNodes(nodes);
+		}
+		
 		try {
 			SecureRandom secureRandom = new SecureRandom();
 			secureRandom.nextInt();
@@ -52,7 +70,8 @@ public class SwirldsAdaptor {
 			sslContext.init(kmf.getKeyManagers(), tmf.getTrustManagers(), secureRandom);
 			
 			SSLSocketFactory socketFactory = sslContext.getSocketFactory();
-			this.socket = socketFactory.createSocket(HOST, PORT);  //new Socket(HOST, PORT);
+			InetSocketAddress destination = (InetSocketAddress) SwirldsAdaptor.nodeRouter.getNode();
+			this.socket = socketFactory.createSocket(destination.getHostName(), destination.getPort());  //new Socket(HOST, PORT);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -75,27 +94,39 @@ public class SwirldsAdaptor {
 	}
 	
 	public SwirldsMessage sendTransaction(SocketDemoTransactionTypes transactionType, Serializable payload) {
-		if (this.socket != null && this.socket.isConnected()) {
+		if (this.socket == null) {
+			throw new IllegalStateException("A socket has not been created");
+		}
+		
+		//Reconnect if we're not currently connected
+		if (!this.socket.isConnected()) {
 			try {
-				//PrintWriter writer = new PrintWriter(socket.getOutputStream(), true);
-				ObjectInputStream reader = new ObjectInputStream(socket.getInputStream());
-				ObjectOutputStream writer = new ObjectOutputStream(this.socket.getOutputStream());
-				SwirldsMessage message = new SwirldsMessage();
-				
-				message.transactionType = transactionType;
-				message.payload = payload;
-				writer.writeObject(message);
-				writer.flush();
-				
-				SwirldsMessage response = (SwirldsMessage) reader.readObject();
-				return response;
+				this.socket.connect(SwirldsAdaptor.nodeRouter.getNode());
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
-				e.printStackTrace();				
-			} catch (ClassNotFoundException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				e.printStackTrace();		
 			}
+		}
+		
+		try {
+			//PrintWriter writer = new PrintWriter(socket.getOutputStream(), true);
+			ObjectInputStream reader = new ObjectInputStream(socket.getInputStream());
+			ObjectOutputStream writer = new ObjectOutputStream(this.socket.getOutputStream());
+			SwirldsMessage message = new SwirldsMessage();
+			
+			message.transactionType = transactionType;
+			message.payload = payload;
+			writer.writeObject(message);
+			writer.flush();
+			
+			SwirldsMessage response = (SwirldsMessage) reader.readObject();
+			return response;
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();				
+		} catch (ClassNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 		
 		return null;
