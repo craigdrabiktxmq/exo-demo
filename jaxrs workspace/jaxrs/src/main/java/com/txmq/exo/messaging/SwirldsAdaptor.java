@@ -40,10 +40,10 @@ public class SwirldsAdaptor {
 		//Set up the list of available nodes
 		//TODO:  Move this into a config file
 		List<SocketAddress> nodes = new ArrayList<SocketAddress>();
-		nodes.add(new InetSocketAddress("localhost", 51204));
-		nodes.add(new InetSocketAddress("localhost", 51205));
-		nodes.add(new InetSocketAddress("localhost", 51206));
-		nodes.add(new InetSocketAddress("localhost", 51207));
+		nodes.add(new InetSocketAddress("hashgraph", 51204));
+		nodes.add(new InetSocketAddress("hashgraph", 51205));
+		nodes.add(new InetSocketAddress("hashgraph", 51206));
+		nodes.add(new InetSocketAddress("hashgraph", 51207));
 		
 		if (SwirldsAdaptor.nodeRouter == null) {
 			SwirldsAdaptor.nodeRouter = new FixedNodeRouter();
