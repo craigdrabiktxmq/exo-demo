@@ -1,0 +1,22 @@
+/couchdb/*
+/.metadata/
+/.recommenders/
+.DS_Store
+RemoteSystemsTempFiles
+.project
+.metadata
+**/.metadata
+.plugins
+**/.plugins
+.classpath
+**/.classpath
+*.class
+**/*.class
+**/bin
+.settings
+**/.settings
+.recommenders
+**/.recommenders
+hashgraph\ workspace/hashgraph/data
+hashgraph\ workspace/hashgraph/swirlds.jar
+**/target
