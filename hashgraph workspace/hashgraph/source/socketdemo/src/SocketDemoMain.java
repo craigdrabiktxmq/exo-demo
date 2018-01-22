@@ -23,9 +23,11 @@ import com.swirlds.platform.Platform;
 import com.swirlds.platform.SwirldMain;
 import com.swirlds.platform.SwirldState;
 import com.txmq.exo.core.PlatformLocator;
-import com.txmq.exo.messaging.SwirldsMessage;
+import com.txmq.exo.messaging.ExoMessage;
 import com.txmq.exo.messaging.rest.CORSFilter;
 import com.txmq.exo.messaging.socket.TransactionServer;
+import com.txmq.exo.persistence.BlockLogger;
+import com.txmq.exo.persistence.couchdb.CouchDBBlockLogger;
 import com.txmq.socketdemo.SocketDemoState;
 import com.txmq.socketdemo.SocketDemoTransactionTypes;
 
@@ -78,7 +80,18 @@ public class SocketDemoMain implements SwirldMain {
 
 	@Override
 	public void run() {
+		//Initialize the platform locator, so Exo code can get a reference to the platform when needed.
 		PlatformLocator.init(platform);
+		
+		//Initialize the block logging system.  In this case, we're going to log blocks to CouchDB
+		System.out.println("Main creating logger for " + platform.getAddress().getSelfName());
+		CouchDBBlockLogger blockLogger = new CouchDBBlockLogger(
+				"zoo-" + platform.getAddress().getSelfName().toLowerCase(),
+				"http",
+				"127.0.0.1",
+				5984);
+		BlockLogger.setLogger(blockLogger, platform.getAddress().getSelfName());
+		
 		//Start up a new transaction server, which will listen for connections from the JAX-RS API
 		TransactionServer server = new TransactionServer(platform, platform.getState().getAddressBookCopy().getAddress(selfId).getPortExternalIpv4() + 1000);
 		server.start();
@@ -99,7 +112,7 @@ public class SocketDemoMain implements SwirldMain {
 		//Announce our REST service to the rest of the participants
 		try {
 			this.platform.createTransaction(
-				new SwirldsMessage(
+				new ExoMessage(
 					new SocketDemoTransactionTypes(SocketDemoTransactionTypes.ANNOUNCE_NODE), 
 					baseUri.toString()
 				).serialize(), 
