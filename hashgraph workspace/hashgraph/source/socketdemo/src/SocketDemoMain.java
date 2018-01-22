@@ -88,7 +88,7 @@ public class SocketDemoMain implements SwirldMain {
 		CouchDBBlockLogger blockLogger = new CouchDBBlockLogger(
 				"zoo-" + platform.getAddress().getSelfName().toLowerCase(),
 				"http",
-				"127.0.0.1",
+				"couchdb",
 				5984);
 		BlockLogger.setLogger(blockLogger, platform.getAddress().getSelfName());
 		
