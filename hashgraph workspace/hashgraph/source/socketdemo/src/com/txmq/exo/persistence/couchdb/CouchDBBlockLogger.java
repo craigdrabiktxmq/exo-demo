@@ -15,7 +15,6 @@ public class CouchDBBlockLogger implements IBlockLogger {
 	private int BLOCK_SIZE = 4;
 	private Block block;
 	private CouchDbClient client;
-	private Map<Integer, Integer> processedTransactions = new HashedMap<Integer, Integer>();
 	
 	public CouchDBBlockLogger() {
 		this.client = new CouchDbClient();
@@ -49,15 +48,9 @@ public class CouchDBBlockLogger implements IBlockLogger {
 		
 	@Override
 	public synchronized void addTransaction(ExoMessage transaction) {
-		if (!this.processedTransactions.containsKey(transaction.uuidHash)) { 
-			this.processedTransactions.put(transaction.uuidHash, 1);
-			this.block.addTransaction(transaction);
-			if (this.block.getBlockSize() == this.BLOCK_SIZE) {
-				this.save(block);
-			}
-		} else {
-			Integer count = this.processedTransactions.get(transaction.uuidHash);
-			this.processedTransactions.put(transaction.uuidHash, count + 1);
+		this.block.addTransaction(transaction);
+		if (this.block.getBlockSize() == this.BLOCK_SIZE) {
+			this.save(block);
 		}
 	}
 
