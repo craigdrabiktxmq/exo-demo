@@ -28,7 +28,9 @@ import com.swirlds.platform.FastCopyable;
 import com.swirlds.platform.Platform;
 import com.swirlds.platform.SwirldState;
 import com.swirlds.platform.Utilities;
-import com.txmq.exo.messaging.SwirldsMessage;
+import com.txmq.exo.core.PlatformLocator;
+import com.txmq.exo.messaging.ExoMessage;
+import com.txmq.exo.persistence.BlockLogger;
 
 import io.swagger.model.Animal;
 
@@ -120,37 +122,41 @@ public class SocketDemoState implements SwirldState {
 		bears= Collections.synchronizedList(new ArrayList<String>(((SocketDemoState) old).bears));
 		endpoints = Collections.synchronizedList(new ArrayList<String>(((SocketDemoState) old).endpoints));
 		addressBook = ((SocketDemoState) old).addressBook.copy();
+		myName = ((SocketDemoState) old).myName;
 	}
 
 	@Override
 	public synchronized void handleTransaction(long id, boolean consensus,
 			Instant timeCreated, byte[] transaction, Address address) {
 		
-		try {
-			SwirldsMessage message = SwirldsMessage.deserialize(transaction);
-			switch (message.transactionType.getValue()) {
-				case SocketDemoTransactionTypes.ADD_ANIMAL:
-					Animal animal = (Animal) message.payload;
-					switch (animal.getSpecies()) {
-						case "lion":
-							this.lions.add(animal.getName());
-							break;
-						case "tiger":
-							this.tigers.add(animal.getName());
-							break;
-						case "bear":
-							this.bears.add(animal.getName());
-							break;
-					}						
-					break;
-				case SocketDemoTransactionTypes.ANNOUNCE_NODE:
-					this.endpoints.add((String) message.payload);
-					break;
-			}			
-		} catch (ClassNotFoundException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
+		if (consensus) {
+			try {
+				ExoMessage message = ExoMessage.deserialize(transaction);
+				BlockLogger.addTransaction(message, this.myName);
+				switch (message.transactionType.getValue()) {
+					case SocketDemoTransactionTypes.ADD_ANIMAL:
+						Animal animal = (Animal) message.payload;
+						switch (animal.getSpecies()) {
+							case "lion":
+								this.lions.add(animal.getName());
+								break;
+							case "tiger":
+								this.tigers.add(animal.getName());
+								break;
+							case "bear":
+								this.bears.add(animal.getName());
+								break;
+						}						
+						break;
+					case SocketDemoTransactionTypes.ANNOUNCE_NODE:
+						this.endpoints.add((String) message.payload);
+						break;
+				}			
+			} catch (ClassNotFoundException e) {
+				e.printStackTrace();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 		}
 	}
 
@@ -158,8 +164,10 @@ public class SocketDemoState implements SwirldState {
 	public void noMoreTransactions() {
 	}
 
+	private String myName;
 	@Override
 	public synchronized void init(Platform platform, AddressBook addressBook) {
+		this.myName = platform.getAddress().getSelfName();
 		this.addressBook = addressBook;
 	}
 }	

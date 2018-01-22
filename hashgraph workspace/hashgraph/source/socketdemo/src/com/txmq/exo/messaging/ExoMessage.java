@@ -6,33 +6,37 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.util.UUID;
 
-public class SwirldsMessage implements Serializable {
+public class ExoMessage implements Serializable {
 	public ExoTransactionType transactionType;
 	public Serializable payload;
-	
-	public SwirldsMessage() {
+	public int uuidHash;
+	public ExoMessage() {
 		super();
 		this.transactionType = new ExoTransactionType();
+		this.uuidHash = UUID.randomUUID().hashCode();
 	}
 	
 	/**
 	 * Initialize this message with the supplied transaction type.
 	 * @param transactionType
 	 */
-	public SwirldsMessage(ExoTransactionType transactionType) {
+	public ExoMessage(ExoTransactionType transactionType) {
 		super();
-		this.transactionType = transactionType;				
+		this.transactionType = transactionType;	
+		this.uuidHash = UUID.randomUUID().hashCode();
 	}
 	
 	/**
 	 * Initialize this message with the supplied transaction type and payload.
 	 * @param transactionType
 	 */
-	public SwirldsMessage(ExoTransactionType transactionType, Serializable payload) {
+	public ExoMessage(ExoTransactionType transactionType, Serializable payload) {
 		super();
 		this.transactionType = transactionType;				
 		this.payload = payload;
+		this.uuidHash = UUID.randomUUID().hashCode();
 	}
 	
 	/**
@@ -60,9 +64,9 @@ public class SwirldsMessage implements Serializable {
 	 *             if anything goes wrong
 	 * @throws ClassNotFoundException 
 	 */
-	public static SwirldsMessage deserialize(byte[] b) throws IOException, ClassNotFoundException {
+	public static ExoMessage deserialize(byte[] b) throws IOException, ClassNotFoundException {
 		ObjectInputStream o = new ObjectInputStream(new ByteArrayInputStream(b));
-		SwirldsMessage result = (SwirldsMessage) o.readObject();
+		ExoMessage result = (ExoMessage) o.readObject();
 		o.close();
 		
 		return result;

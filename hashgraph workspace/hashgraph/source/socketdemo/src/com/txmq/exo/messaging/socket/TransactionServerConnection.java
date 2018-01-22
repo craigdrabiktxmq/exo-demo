@@ -9,7 +9,7 @@ import java.net.Socket;
 
 import com.swirlds.platform.Platform;
 import com.txmq.exo.messaging.ExoTransactionType;
-import com.txmq.exo.messaging.SwirldsMessage;
+import com.txmq.exo.messaging.ExoMessage;
 import com.txmq.socketdemo.SocketDemoState;
 import com.txmq.socketdemo.SocketDemoTransactionTypes;
 
@@ -29,11 +29,11 @@ public class TransactionServerConnection extends Thread {
 		try {
 			ObjectOutputStream writer = new ObjectOutputStream(this.socket.getOutputStream());
 			ObjectInputStream reader = new ObjectInputStream(socket.getInputStream());
-			SwirldsMessage message;
-			SwirldsMessage response = new SwirldsMessage();
+			ExoMessage message;
+			ExoMessage response = new ExoMessage();
 			try {
 				Object tmp = reader.readObject();
-				message = (SwirldsMessage) tmp; 
+				message = (ExoMessage) tmp; 
 				SocketDemoState state = (SocketDemoState) this.platform.getState();
 				
 				switch(message.transactionType.getValue()) {
