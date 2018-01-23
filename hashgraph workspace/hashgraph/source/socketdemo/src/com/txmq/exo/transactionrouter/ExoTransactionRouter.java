@@ -13,9 +13,8 @@ import org.reflections.scanners.MethodAnnotationsScanner;
 import org.reflections.util.ClasspathHelper;
 import org.reflections.util.ConfigurationBuilder;
 
-import com.txmq.exo.core.ExoState;
 import com.txmq.exo.messaging.ExoMessage;
-import com.txmq.socketdemo.SocketDemoState;
+import com.txmq.exo.core.ExoState;
 
 public class ExoTransactionRouter {
 	

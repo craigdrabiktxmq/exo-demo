@@ -5,7 +5,6 @@ import java.util.Map;
 import org.apache.commons.collections4.map.HashedMap;
 import org.lightcouch.CouchDbClient;
 
-import com.txmq.exo.core.ExoPlatformLocator;
 import com.txmq.exo.messaging.ExoMessage;
 import com.txmq.exo.persistence.Block;
 import com.txmq.exo.persistence.IBlockLogger;
@@ -15,6 +14,7 @@ public class CouchDBBlockLogger implements IBlockLogger {
 	private int BLOCK_SIZE = 4;
 	private Block block;
 	private CouchDbClient client;
+	private Map<Integer, Integer> processedTransactions = new HashedMap<Integer, Integer>();
 	
 	public CouchDBBlockLogger() {
 		this.client = new CouchDbClient();
@@ -40,7 +40,6 @@ public class CouchDBBlockLogger implements IBlockLogger {
 		this.initialize();
 	}
 
-	//TODO:  Methods may not have to be synchronized.  Guessing there's a performance hit to it..
 	private synchronized void initialize() {
 		this.block = new Block();
 		//TODO:  Should be the string rep of the Swirld ID from the platform, not the string "GENESIS_BLOCK"
@@ -49,9 +48,15 @@ public class CouchDBBlockLogger implements IBlockLogger {
 		
 	@Override
 	public synchronized void addTransaction(ExoMessage transaction) {
-		this.block.addTransaction(transaction);
-		if (this.block.getBlockSize() == this.BLOCK_SIZE) {
-			this.save(block);
+		if (!this.processedTransactions.containsKey(transaction.uuidHash)) { 
+			this.processedTransactions.put(transaction.uuidHash, 1);
+			this.block.addTransaction(transaction);
+			if (this.block.getBlockSize() == this.BLOCK_SIZE) {
+				this.save(block);
+			}
+		} else {
+			Integer count = this.processedTransactions.get(transaction.uuidHash);
+			this.processedTransactions.put(transaction.uuidHash, count + 1);
 		}
 	}
 
