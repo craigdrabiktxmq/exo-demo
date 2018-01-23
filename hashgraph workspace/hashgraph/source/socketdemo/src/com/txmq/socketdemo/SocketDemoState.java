@@ -11,7 +11,6 @@ package com.txmq.socketdemo;
  * DISTRIBUTING THIS SOFTWARE OR ITS DERIVATIVES.
  */
 
-import java.io.IOException;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -24,10 +23,7 @@ import com.swirlds.platform.FCDataOutputStream;
 import com.swirlds.platform.FastCopyable;
 import com.swirlds.platform.Platform;
 import com.swirlds.platform.SwirldState;
-import com.txmq.exo.core.ExoPlatformLocator;
 import com.txmq.exo.core.ExoState;
-import com.txmq.exo.messaging.ExoMessage;
-import com.txmq.exo.persistence.BlockLogger;
 
 
 /**
@@ -76,18 +72,6 @@ public class SocketDemoState extends ExoState implements SwirldState {
 	public synchronized void addBear(String name) {
 		this.bears.add(name);
 	}
-	
-	private List<String> endpoints = Collections
-			.synchronizedList(new ArrayList<String>());
-
-	/** @return all the strings received so far from the network */
-	public synchronized List<String> getEndpoints() {
-		return endpoints;
-	}
-	
-	public synchronized void addEndpoint(String endpoint) {
-		this.endpoints.add(endpoint);
-	}
 
 	// ///////////////////////////////////////////////////////////////////
 
@@ -128,38 +112,17 @@ public class SocketDemoState extends ExoState implements SwirldState {
 
 	@Override
 	public synchronized void copyFrom(SwirldState old) {
+		super.copyFrom(old);
 		lions = Collections.synchronizedList(new ArrayList<String>(((SocketDemoState) old).lions));
 		tigers = Collections.synchronizedList(new ArrayList<String>(((SocketDemoState) old).tigers));
 		bears= Collections.synchronizedList(new ArrayList<String>(((SocketDemoState) old).bears));
-		endpoints = Collections.synchronizedList(new ArrayList<String>(((SocketDemoState) old).endpoints));
-		addressBook = ((SocketDemoState) old).addressBook.copy();
-		myName = ((SocketDemoState) old).myName;
 	}
 
 	@Override
 	public synchronized void handleTransaction(long id, boolean consensus,
 			Instant timeCreated, byte[] transaction, Address address) {
 		
-		super.handleTransaction(id, consensus, timeCreated, transaction, address);
-		/**
-		 * Write a configurable mapper to automatically route a transaction to
-		 * a handler based on transaction type.  @see SocketDemoMain
-		 */
-		/*
-		if (consensus) {
-			try {
-				ExoMessage message = ExoMessage.deserialize(transaction);
-				BlockLogger.addTransaction(message, this.myName);
-				ExoPlatformLocator.getTransactionRouter().routeTransaction(message, this);				
-			} catch (ClassNotFoundException e) {
-				e.printStackTrace();
-			} catch (IOException e) {
-				e.printStackTrace();
-			} catch (ReflectiveOperationException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}*/
+		super.handleTransaction(id, consensus, timeCreated, transaction, address);		
 	}
 
 	@Override
