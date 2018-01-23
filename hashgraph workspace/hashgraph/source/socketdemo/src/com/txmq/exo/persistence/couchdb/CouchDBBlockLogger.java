@@ -5,7 +5,7 @@ import java.util.Map;
 import org.apache.commons.collections4.map.HashedMap;
 import org.lightcouch.CouchDbClient;
 
-import com.txmq.exo.core.PlatformLocator;
+import com.txmq.exo.core.ExoPlatformLocator;
 import com.txmq.exo.messaging.ExoMessage;
 import com.txmq.exo.persistence.Block;
 import com.txmq.exo.persistence.IBlockLogger;
@@ -40,6 +40,7 @@ public class CouchDBBlockLogger implements IBlockLogger {
 		this.initialize();
 	}
 
+	//TODO:  Methods may not have to be synchronized.  Guessing there's a performance hit to it..
 	private synchronized void initialize() {
 		this.block = new Block();
 		//TODO:  Should be the string rep of the Swirld ID from the platform, not the string "GENESIS_BLOCK"

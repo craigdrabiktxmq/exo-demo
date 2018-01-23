@@ -3,7 +3,7 @@ package com.txmq.exo.persistence;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.txmq.exo.core.PlatformLocator;
+import com.txmq.exo.core.ExoPlatformLocator;
 import com.txmq.exo.messaging.ExoMessage;
 
 public class BlockLogger {
@@ -22,6 +22,11 @@ public class BlockLogger {
 	public static void addTransaction(ExoMessage transaction, String nodeName) {
 		System.out.println("logging transaction for " + nodeName);
 		//TODO:  Figure out a way to cut in notification that a transaction has reached consensus and has been processed by the hashgraph.
-		getLogger(nodeName).addTransaction(transaction);
+		try {
+			getLogger(nodeName).addTransaction(transaction);
+		} catch (Exception e) {
+			System.out.println("Failed to log transaction for node " + nodeName);
+			e.printStackTrace();
+		}
 	}
 }

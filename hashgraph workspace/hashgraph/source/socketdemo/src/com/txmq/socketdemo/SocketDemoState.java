@@ -28,7 +28,7 @@ import com.swirlds.platform.FastCopyable;
 import com.swirlds.platform.Platform;
 import com.swirlds.platform.SwirldState;
 import com.swirlds.platform.Utilities;
-import com.txmq.exo.core.PlatformLocator;
+import com.txmq.exo.core.ExoPlatformLocator;
 import com.txmq.exo.messaging.ExoMessage;
 import com.txmq.exo.persistence.BlockLogger;
 
@@ -54,6 +54,10 @@ public class SocketDemoState implements SwirldState {
 		return lions;
 	}
 
+	public synchronized void addLion(String name) {
+		this.lions.add(name);
+	}
+	
 	private List<String> tigers = Collections
 			.synchronizedList(new ArrayList<String>());
 
@@ -62,6 +66,10 @@ public class SocketDemoState implements SwirldState {
 		return tigers;
 	}
 
+	public synchronized void addTiger(String name) {
+		this.tigers.add(name);
+	}
+	
 	private List<String> bears = Collections
 			.synchronizedList(new ArrayList<String>());
 
@@ -70,12 +78,20 @@ public class SocketDemoState implements SwirldState {
 		return bears;
 	}
 	
+	public synchronized void addBear(String name) {
+		this.bears.add(name);
+	}
+	
 	private List<String> endpoints = Collections
 			.synchronizedList(new ArrayList<String>());
 
 	/** @return all the strings received so far from the network */
 	public synchronized List<String> getEndpoints() {
 		return endpoints;
+	}
+	
+	public synchronized void addEndpoint(String endpoint) {
+		this.endpoints.add(endpoint);
 	}
 
 	// ///////////////////////////////////////////////////////////////////
@@ -129,10 +145,16 @@ public class SocketDemoState implements SwirldState {
 	public synchronized void handleTransaction(long id, boolean consensus,
 			Instant timeCreated, byte[] transaction, Address address) {
 		
+		/**
+		 * Write a configurable mapper to automatically route a transaction to
+		 * a handler based on transaction type.  @see SocketDemoMain
+		 */
 		if (consensus) {
 			try {
 				ExoMessage message = ExoMessage.deserialize(transaction);
 				BlockLogger.addTransaction(message, this.myName);
+				ExoPlatformLocator.getTransactionRouter().routeTransaction(message, this);
+				/*
 				switch (message.transactionType.getValue()) {
 					case SocketDemoTransactionTypes.ADD_ANIMAL:
 						Animal animal = (Animal) message.payload;
@@ -151,10 +173,13 @@ public class SocketDemoState implements SwirldState {
 					case SocketDemoTransactionTypes.ANNOUNCE_NODE:
 						this.endpoints.add((String) message.payload);
 						break;
-				}			
+				}		*/	
 			} catch (ClassNotFoundException e) {
 				e.printStackTrace();
 			} catch (IOException e) {
+				e.printStackTrace();
+			} catch (ReflectiveOperationException e) {
+				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}

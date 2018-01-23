@@ -6,7 +6,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import com.txmq.exo.core.PlatformLocator;
+import com.txmq.exo.core.ExoPlatformLocator;
 import com.txmq.socketdemo.SocketDemoState;
 
 @Path("/HashgraphZoo/1.0.0")
@@ -15,7 +15,7 @@ public class EndpointsApi {
 	@Path("/endpoints")
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response getEndpoints() {
-		SocketDemoState state = (SocketDemoState) PlatformLocator.getPlatform().getState();
+		SocketDemoState state = (SocketDemoState) ExoPlatformLocator.getPlatform().getState();
 		return Response.ok().entity(state.getEndpoints()).build();
 	}
 	

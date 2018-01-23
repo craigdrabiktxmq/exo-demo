@@ -52,6 +52,11 @@
 	  <artifactId>lightcouch</artifactId>
 	  <version>0.2.0</version>
 	</dependency>
+	<dependency>
+	    <groupId>org.reflections</groupId>
+	    <artifactId>reflections</artifactId>
+	    <version>0.9.9</version>
+	</dependency>
   </dependencies>
   <build>
   	<plugins>
