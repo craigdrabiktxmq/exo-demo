@@ -22,12 +22,13 @@ import com.swirlds.platform.Console;
 import com.swirlds.platform.Platform;
 import com.swirlds.platform.SwirldMain;
 import com.swirlds.platform.SwirldState;
-import com.txmq.exo.core.PlatformLocator;
+import com.txmq.exo.core.ExoPlatformLocator;
 import com.txmq.exo.messaging.ExoMessage;
 import com.txmq.exo.messaging.rest.CORSFilter;
 import com.txmq.exo.messaging.socket.TransactionServer;
 import com.txmq.exo.persistence.BlockLogger;
 import com.txmq.exo.persistence.couchdb.CouchDBBlockLogger;
+import com.txmq.exo.transactionrouter.ExoTransactionRouter;
 import com.txmq.socketdemo.SocketDemoState;
 import com.txmq.socketdemo.SocketDemoTransactionTypes;
 
@@ -81,21 +82,30 @@ public class SocketDemoMain implements SwirldMain {
 	@Override
 	public void run() {
 		//Initialize the platform locator, so Exo code can get a reference to the platform when needed.
-		PlatformLocator.init(platform);
+		ExoPlatformLocator.init(platform);
 		
 		//Initialize the block logging system.  In this case, we're going to log blocks to CouchDB
 		System.out.println("Main creating logger for " + platform.getAddress().getSelfName());
 		CouchDBBlockLogger blockLogger = new CouchDBBlockLogger(
 				"zoo-" + platform.getAddress().getSelfName().toLowerCase(),
 				"http",
-				"couchdb",
+				//"couchdb",
+				"localhost",
 				5984);
 		BlockLogger.setLogger(blockLogger, platform.getAddress().getSelfName());
+		
+		//Initialize annotation-based transaction routing
+		ExoPlatformLocator.getTransactionRouter().addPackage("com.txmq.exo.messaging.rest");
 		
 		//Start up a new transaction server, which will listen for connections from the JAX-RS API
 		TransactionServer server = new TransactionServer(platform, platform.getState().getAddressBookCopy().getAddress(selfId).getPortExternalIpv4() + 1000);
 		server.start();
 		
+		/**
+		 * TODO:  Ape the Grizzly code to set up a mapping between transaction types and
+		 * their handlers.  We can use this to replace the big switch statement in 
+		 * SocketDemoState.handleTransaction()
+		 */
 		//Set up a REST endpoint as well
 		int port = platform.getState().getAddressBookCopy().getAddress(selfId).getPortExternalIpv4() + 2000;
 		//URI baseUri = UriBuilder.fromUri("http://localhost").port(port).build();

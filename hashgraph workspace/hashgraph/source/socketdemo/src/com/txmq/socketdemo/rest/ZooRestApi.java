@@ -9,7 +9,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import com.txmq.exo.core.PlatformLocator;
+import com.txmq.exo.core.ExoPlatformLocator;
 import com.txmq.exo.messaging.ExoMessage;
 import com.txmq.socketdemo.SocketDemoState;
 import com.txmq.socketdemo.SocketDemoTransactionTypes;
@@ -22,7 +22,7 @@ public class ZooRestApi {
 	@Path("/zoo")
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response getZoo() {
-		SocketDemoState state = (SocketDemoState) PlatformLocator.getState();
+		SocketDemoState state = (SocketDemoState) ExoPlatformLocator.getState();
 		Zoo result = new Zoo();
 		result.lions(state.getLions());
 		result.tigers(state.getTigers());
@@ -38,7 +38,7 @@ public class ZooRestApi {
 		ExoMessage message = new ExoMessage(new SocketDemoTransactionTypes(SocketDemoTransactionTypes.ADD_ANIMAL), animal);
 		
 		try {
-			PlatformLocator.getPlatform().createTransaction(message.serialize(), null);
+			ExoPlatformLocator.getPlatform().createTransaction(message.serialize(), null);
 		} catch (IllegalStateException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

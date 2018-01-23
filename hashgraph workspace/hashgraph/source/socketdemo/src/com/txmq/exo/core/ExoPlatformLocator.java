@@ -2,12 +2,14 @@ package com.txmq.exo.core;
 
 import com.swirlds.platform.Platform;
 import com.swirlds.platform.SwirldState;
+import com.txmq.exo.transactionrouter.ExoTransactionRouter;
 
-public class PlatformLocator {
+public class ExoPlatformLocator {
 	private static Platform platform;
+	private static ExoTransactionRouter transactionRouter = new ExoTransactionRouter();
 	
 	public static void init(Platform platform) {
-		PlatformLocator.platform = platform;
+		ExoPlatformLocator.platform = platform;
 	}
 	
 	public static Platform getPlatform() throws IllegalStateException {
@@ -30,5 +32,9 @@ public class PlatformLocator {
 		}
 		
 		return platform.getState();
+	}
+	
+	public static ExoTransactionRouter getTransactionRouter() {
+		return transactionRouter;
 	}
 }

@@ -3,7 +3,6 @@ package com.txmq.exo.persistence;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.txmq.exo.core.PlatformLocator;
 import com.txmq.exo.messaging.ExoMessage;
 
 public class BlockLogger {

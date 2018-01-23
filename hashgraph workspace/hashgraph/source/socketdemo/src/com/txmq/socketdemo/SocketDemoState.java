@@ -11,12 +11,8 @@ package com.txmq.socketdemo;
  * DISTRIBUTING THIS SOFTWARE OR ITS DERIVATIVES.
  */
 
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -27,21 +23,16 @@ import com.swirlds.platform.FCDataOutputStream;
 import com.swirlds.platform.FastCopyable;
 import com.swirlds.platform.Platform;
 import com.swirlds.platform.SwirldState;
-import com.swirlds.platform.Utilities;
-import com.txmq.exo.core.PlatformLocator;
-import com.txmq.exo.messaging.ExoMessage;
-import com.txmq.exo.persistence.BlockLogger;
+import com.txmq.exo.core.ExoState;
 
-import io.swagger.model.Animal;
 
 /**
  * This holds the current state of the swirld. For this simple "hello swirld" code, each transaction is just
  * a string, and the state is just a list of the strings in all the transactions handled so far, in the
  * order that they were handled.
  */
-public class SocketDemoState implements SwirldState {
-	/** names and addresses of all members */
-	private AddressBook addressBook;
+public class SocketDemoState extends ExoState implements SwirldState {
+	
 	
 	/**
 	 * The zoo consists of a number of lions, tigers, and bears pushed into the zoo by users
@@ -54,6 +45,10 @@ public class SocketDemoState implements SwirldState {
 		return lions;
 	}
 
+	public synchronized void addLion(String name) {
+		this.lions.add(name);
+	}
+	
 	private List<String> tigers = Collections
 			.synchronizedList(new ArrayList<String>());
 
@@ -62,6 +57,10 @@ public class SocketDemoState implements SwirldState {
 		return tigers;
 	}
 
+	public synchronized void addTiger(String name) {
+		this.tigers.add(name);
+	}
+	
 	private List<String> bears = Collections
 			.synchronizedList(new ArrayList<String>());
 
@@ -70,12 +69,8 @@ public class SocketDemoState implements SwirldState {
 		return bears;
 	}
 	
-	private List<String> endpoints = Collections
-			.synchronizedList(new ArrayList<String>());
-
-	/** @return all the strings received so far from the network */
-	public synchronized List<String> getEndpoints() {
-		return endpoints;
+	public synchronized void addBear(String name) {
+		this.bears.add(name);
 	}
 
 	// ///////////////////////////////////////////////////////////////////
@@ -117,57 +112,25 @@ public class SocketDemoState implements SwirldState {
 
 	@Override
 	public synchronized void copyFrom(SwirldState old) {
+		super.copyFrom(old);
 		lions = Collections.synchronizedList(new ArrayList<String>(((SocketDemoState) old).lions));
 		tigers = Collections.synchronizedList(new ArrayList<String>(((SocketDemoState) old).tigers));
 		bears= Collections.synchronizedList(new ArrayList<String>(((SocketDemoState) old).bears));
-		endpoints = Collections.synchronizedList(new ArrayList<String>(((SocketDemoState) old).endpoints));
-		addressBook = ((SocketDemoState) old).addressBook.copy();
-		myName = ((SocketDemoState) old).myName;
 	}
 
 	@Override
 	public synchronized void handleTransaction(long id, boolean consensus,
 			Instant timeCreated, byte[] transaction, Address address) {
 		
-		if (consensus) {
-			try {
-				ExoMessage message = ExoMessage.deserialize(transaction);
-				BlockLogger.addTransaction(message, this.myName);
-				switch (message.transactionType.getValue()) {
-					case SocketDemoTransactionTypes.ADD_ANIMAL:
-						Animal animal = (Animal) message.payload;
-						switch (animal.getSpecies()) {
-							case "lion":
-								this.lions.add(animal.getName());
-								break;
-							case "tiger":
-								this.tigers.add(animal.getName());
-								break;
-							case "bear":
-								this.bears.add(animal.getName());
-								break;
-						}						
-						break;
-					case SocketDemoTransactionTypes.ANNOUNCE_NODE:
-						this.endpoints.add((String) message.payload);
-						break;
-				}			
-			} catch (ClassNotFoundException e) {
-				e.printStackTrace();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
+		super.handleTransaction(id, consensus, timeCreated, transaction, address);		
 	}
 
 	@Override
 	public void noMoreTransactions() {
 	}
 
-	private String myName;
 	@Override
 	public synchronized void init(Platform platform, AddressBook addressBook) {
-		this.myName = platform.getAddress().getSelfName();
-		this.addressBook = addressBook;
+		super.init(platform, addressBook);
 	}
 }	
