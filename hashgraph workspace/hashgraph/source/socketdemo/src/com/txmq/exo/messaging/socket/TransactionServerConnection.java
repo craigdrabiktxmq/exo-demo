@@ -15,6 +15,10 @@ import com.txmq.socketdemo.SocketDemoTransactionTypes;
 
 import io.swagger.model.Zoo;
 
+/**
+ * TransactionServerConnection represents the server-side of an established connection.
+ * It runs on its own thread and accepts ExoMessages from the socket.
+ */
 public class TransactionServerConnection extends Thread {
 
 	private Socket socket;
@@ -25,17 +29,28 @@ public class TransactionServerConnection extends Thread {
 		this.platform = platform;
 	}
 	
+	/**
+	 * Accepts transactions in ExoMessage instances from the socket and process them.
+	 * 
+	 * TODO:  Christ this code is old..  I hadn't realized I was processing the transactions 
+	 * hard-coded and in place.  This needs to get hooked into the framework somehow so logic 
+	 * can be reused.
+	 */
 	public void run() {
 		try {
+			//Set up streams for reading from and writing to the socket.
 			ObjectOutputStream writer = new ObjectOutputStream(this.socket.getOutputStream());
 			ObjectInputStream reader = new ObjectInputStream(socket.getInputStream());
 			ExoMessage message;
 			ExoMessage response = new ExoMessage();
 			try {
+				//Read the message object and try to cast it to ExoMessage
 				Object tmp = reader.readObject();
 				message = (ExoMessage) tmp; 
 				SocketDemoState state = (SocketDemoState) this.platform.getState();
 				
+				//Process the message..  This needs to be re-architected
+				//TOO:  Fix this shizz
 				switch(message.transactionType.getValue()) {
 					case SocketDemoTransactionTypes.ACKNOWLEDGE:
 						//We shouldn't receive this from the client.  If we do, just send it back
@@ -63,6 +78,7 @@ public class TransactionServerConnection extends Thread {
 						response.transactionType.setValue(ExoTransactionType.ACKNOWLEDGE);						
 				}
 				
+				//write the response to the socket
 				writer.writeObject(response);					
 				writer.flush();
 			} catch (ClassNotFoundException e) {

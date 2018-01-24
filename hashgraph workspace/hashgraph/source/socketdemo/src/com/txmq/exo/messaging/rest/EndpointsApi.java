@@ -9,6 +9,11 @@ import javax.ws.rs.core.Response;
 import com.txmq.exo.core.ExoPlatformLocator;
 import com.txmq.socketdemo.SocketDemoState;
 
+/**
+ * This class implements a REST endpoint for retrieving a list of endpoints that the Swirld
+ * exposes.  Endpoints self-report by issuing an ExoMessage, which is logged in state.
+ * 
+ */
 @Path("/HashgraphZoo/1.0.0")
 public class EndpointsApi {
 	@GET

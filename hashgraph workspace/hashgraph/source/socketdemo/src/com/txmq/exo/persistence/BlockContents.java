@@ -12,11 +12,23 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.txmq.exo.messaging.ExoMessage;
 
-
+/**
+ * Container for a block's transaction list and the hash of the previous block.
+ * This object gets hashed to calculate the hash of the current block.
+ */
 class BlockContents implements Serializable {
+
+	/**
+	 * Hash of the previous block.  Blockchains ensure the integrity of the chain by 
+	 * including the previous block's hash, and including that value in its own hash.
+	 */
 	public String previousBlockHash;
 	public List<ExoMessage> transactions = new ArrayList<ExoMessage>();
 	
+	/**
+	 * Calculates an SHA-256 hash of this object by first 
+	 * serializing to JSON and then hashing that string.
+	 */
 	public String hash() {
 		ObjectMapper mapper = new ObjectMapper();
 		MessageDigest md;
