@@ -18,6 +18,8 @@ import javax.net.ssl.SSLServerSocketFactory;
 import javax.net.ssl.TrustManagerFactory;
 
 import com.swirlds.platform.Platform;
+import com.txmq.exo.transactionrouter.ExoTransaction;
+import com.txmq.exo.transactionrouter.ExoTransactionRouter;
 
 /**
  * TransactionServer is the "controller" for the socket-based Hashgraph integration 
@@ -39,9 +41,17 @@ public class TransactionServer extends Thread {
 	 */
 	private Platform platform;
 	private SSLServerSocket serverSocket;
+	private ExoTransactionRouter transactionRouter;
 	
-	public TransactionServer(Platform platform, int port) {
+	public TransactionServer(Platform platform, int port, String[] packages) {
 		this.platform = platform;
+		
+		//Set up a transaction router for socket requests
+		this.transactionRouter = new ExoTransactionRouter();
+		for (String pkg : packages) {
+			this.transactionRouter.addPackage(pkg);
+		}
+		
 		try {
 			//Set up all the cryptography..  The certificates are known in advance, and used
 			// to authenticate client/server and establish TLS encrypted connections.
@@ -98,7 +108,7 @@ public class TransactionServer extends Thread {
 			while (true) {
 				try {
 					Socket socket = this.serverSocket.accept();
-					new TransactionServerConnection(socket, this.platform).start();
+					new TransactionServerConnection(socket, this.platform, this.transactionRouter).start();
 				} catch (IOException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();

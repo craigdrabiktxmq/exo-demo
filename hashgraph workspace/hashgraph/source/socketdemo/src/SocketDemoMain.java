@@ -96,7 +96,8 @@ public class SocketDemoMain implements SwirldMain {
 		
 		//Initialize socket server
 		ExoPlatformLocator.initSocketMessaging(
-			platform.getState().getAddressBookCopy().getAddress(selfId).getPortExternalIpv4() + 1000
+			platform.getState().getAddressBookCopy().getAddress(selfId).getPortExternalIpv4() + 1000,
+			new String[] {"com.txmq.socketdemo.socket"}
 		);
 	}
 

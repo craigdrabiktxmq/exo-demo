@@ -51,12 +51,12 @@ public class ExoPlatformLocator {
 	 * Initialization method for the platform.  This should be called by your main's 
 	 * init() or run() methods
 	 */
-	public static void init(Platform platform) {
+	public static synchronized void init(Platform platform) {
 		ExoPlatformLocator.platform = platform;
 		
 	}
 	
-	public static void init(	Platform platform, 
+	public static synchronized void init(	Platform platform, 
 							Class<? extends ExoTransactionType> transactionTypeClass, 
 							String[] transactionProcessorPackages) {
 		init(platform);
@@ -74,7 +74,7 @@ public class ExoPlatformLocator {
 		}
 	}
 	
-	public static void init(	Platform platform, 
+	public static synchronized void init(	Platform platform, 
 							Class<? extends ExoTransactionType> transactionTypeClass,
 							String[] transactionProcessorPackages, 
 							IBlockLogger logger) {
@@ -117,8 +117,17 @@ public class ExoPlatformLocator {
 		}
 	}
 	
-	public static void initSocketMessaging(int port) {
-		new TransactionServer(platform, port).start();
+	/**
+	 * Sets up a socket-based API for communicating with this Swirld on the supplied 
+	 * port.  Scans the supplied list of packages for methods annotated with 
+	 * @ExoTransaction and automatically maps incoming messages to matching handlers.  
+	 * Any transactions which have not been mapped are passed through the platform to
+	 * be processed by the model.  
+	 * @param port
+	 * @param packages
+	 */
+	public static void initSocketMessaging(int port, String[] packages) {
+		new TransactionServer(platform, port, packages).start();
 	}
 	
 	/**

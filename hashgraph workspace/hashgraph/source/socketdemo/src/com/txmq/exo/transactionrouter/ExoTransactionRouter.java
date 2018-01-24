@@ -45,7 +45,7 @@ public class ExoTransactionRouter {
 	/**
 	 * Map of transaction type values to the methods that handle them.
 	 */
-	private Map<String, Method> transactionMap;
+	protected Map<String, Method> transactionMap;
 
 	/**
 	 * Methods have to be invoked on an instance of an object (unless
@@ -58,11 +58,11 @@ public class ExoTransactionRouter {
 	 * state they maintain.  Realize that Exo will probably only ever
 	 * create one instance.
 	 */
-	private Map<Class<?>, Object> transactionProcessors;
+	protected Map<Class<?>, Object> transactionProcessors;
 	
 	/**
 	 * No-op constructor.  ExoTransactionRouter will be instantiated by 
-	 * ExoPlatformLocator and should be treated as a singleton.  
+	 * ExoPlatformLocator and TransactionServer, and managed by the platform.
 	 * 
 	 * Applications should not create instances of ExoTransactionRouter.
 	 * 
@@ -79,10 +79,12 @@ public class ExoTransactionRouter {
 	 * internal mapping of transaction type to processing method.
 	 */
 	public ExoTransactionRouter addPackage(String transactionPackage) {
+		/*
 		Reflections reflections = new Reflections(new ConfigurationBuilder()
 		     .setUrls(ClasspathHelper.forPackage(transactionPackage))
 		     .setScanners(new MethodAnnotationsScanner())
-		);
+		);*/
+		Reflections reflections = new Reflections(transactionPackage, new MethodAnnotationsScanner());			
 		
 		Set<Method> methods = reflections.getMethodsAnnotatedWith(ExoTransaction.class);
 		for (Method method : methods) {
@@ -104,7 +106,7 @@ public class ExoTransactionRouter {
 	 * It will create the instance if it needs to.  Assuming it finds/creates
 	 * what it needs, it invokes the method passing in the message and state.
 	 */
-	public void routeTransaction(ExoMessage message, ExoState state) throws ReflectiveOperationException { 
+	public Object routeTransaction(ExoMessage message, ExoState state) throws ReflectiveOperationException { 
 		if (this.transactionMap.containsKey(message.transactionType.getValue())) {
 			Method method = this.transactionMap.get(message.transactionType.getValue());
 			Class<?> processorClass = method.getDeclaringClass();			
@@ -114,7 +116,12 @@ public class ExoTransactionRouter {
 			}
 			
 			Object transactionProcessor = this.transactionProcessors.get(processorClass);
-			method.invoke(transactionProcessor, message, state );
+			return method.invoke(transactionProcessor, message, state );
+		} else {
+			throw new IllegalArgumentException(
+					"A handler for transaction type " + message.transactionType.getValue() + 
+					" was not registered with the transaction router"
+			);
 		}
 	}
 }
