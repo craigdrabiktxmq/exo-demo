@@ -89,9 +89,10 @@ public class SocketDemoMain implements SwirldMain {
 		ExoPlatformLocator.init(platform, SocketDemoTransactionTypes.class, transactionProcessorPackages, blockLogger);
 		
 		//Initialize REST endpoints exposed by this Hashgraph
-		int port = platform.getState().getAddressBookCopy().getAddress(selfId).getPortExternalIpv4() + 2000;
-		String[] packages = {"com.txmq.socketdemo.rest"};
-		ExoPlatformLocator.initREST(port, packages);
+		ExoPlatformLocator.initREST(
+			platform.getState().getAddressBookCopy().getAddress(selfId).getPortExternalIpv4() + 2000, 
+			new String[] {"com.txmq.socketdemo.rest"}
+		);
 	}
 
 	@Override
@@ -100,16 +101,6 @@ public class SocketDemoMain implements SwirldMain {
 		//Start up a new transaction server, which will listen for connections from the JAX-RS API
 		TransactionServer server = new TransactionServer(platform, platform.getState().getAddressBookCopy().getAddress(selfId).getPortExternalIpv4() + 1000);
 		server.start();
-		
-		/**
-		 * TODO:  Ape the Grizzly code to set up a mapping between transaction types and
-		 * their handlers.  We can use this to replace the big switch statement in 
-		 * SocketDemoState.handleTransaction()
-		 */
-		
-	
-		//Announce our REST service to the rest of the participants
-		
 		
 		while (true) {
 			try {
