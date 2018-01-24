@@ -2,6 +2,7 @@ package com.txmq.exo.core;
 
 import com.swirlds.platform.Platform;
 import com.swirlds.platform.SwirldState;
+import com.txmq.exo.persistence.IBlockLogger;
 import com.txmq.exo.transactionrouter.ExoTransactionRouter;
 
 /**
@@ -30,8 +31,21 @@ public class ExoPlatformLocator {
 	 */
 	public static void init(Platform platform) {
 		ExoPlatformLocator.platform = platform;
+		
 	}
 	
+	public static void init(Platform platform, String[] transactionProcessorPackages) {
+		init(platform);
+		for (String tpp : transactionProcessorPackages) {
+			transactionRouter.addPackage(tpp);
+		}
+	}
+	
+	public static void init(Platform platform, String[] transactionProcessorPackages, IBlockLogger logger) {
+		init(platform, transactionProcessorPackages);
+		//TODO:  Wire up logger, requires refactoring  and maybe elimination of BlockLogger
+	}
+		
 	/**
 	 * Accessor for a reference to the Swirlds platform.  Developers must call 
 	 * ExoPlatformLocator.init() to intialize the locator before calling getPlatform()
