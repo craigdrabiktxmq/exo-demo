@@ -2,6 +2,7 @@ package com.txmq.exo.core;
 
 import com.swirlds.platform.Platform;
 import com.swirlds.platform.SwirldState;
+import com.txmq.exo.persistence.BlockLogger;
 import com.txmq.exo.persistence.IBlockLogger;
 import com.txmq.exo.transactionrouter.ExoTransactionRouter;
 
@@ -26,6 +27,11 @@ public class ExoPlatformLocator {
 	private static ExoTransactionRouter transactionRouter = new ExoTransactionRouter();
 	
 	/**
+	 * Reference to the block logging manager
+	 */
+	private static BlockLogger blockLogger = new BlockLogger();
+	
+	/**
 	 * Initialization method for the platform.  This should be called by your main's 
 	 * init() or run() methods
 	 */
@@ -43,9 +49,14 @@ public class ExoPlatformLocator {
 	
 	public static void init(Platform platform, String[] transactionProcessorPackages, IBlockLogger logger) {
 		init(platform, transactionProcessorPackages);
-		//TODO:  Wire up logger, requires refactoring  and maybe elimination of BlockLogger
+		blockLogger.setLogger(logger,  platform.getAddress().getSelfName());
 	}
-		
+	
+	public static void init(Platform platform, String[] transactionProcessorPackages, IBlockLogger logger, String nodeName) {
+		init(platform, transactionProcessorPackages);
+		blockLogger.setLogger(logger,  nodeName);
+	}
+	
 	/**
 	 * Accessor for a reference to the Swirlds platform.  Developers must call 
 	 * ExoPlatformLocator.init() to intialize the locator before calling getPlatform()
@@ -82,5 +93,12 @@ public class ExoPlatformLocator {
 	 */
 	public static ExoTransactionRouter getTransactionRouter() {
 		return transactionRouter;
+	}
+	
+	/**
+	 * Accessor for the block logging manager
+	 */
+	public static BlockLogger getBlockLogger() {
+		return blockLogger;
 	}
 }

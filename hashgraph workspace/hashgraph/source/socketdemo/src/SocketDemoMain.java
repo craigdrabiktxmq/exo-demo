@@ -79,23 +79,18 @@ public class SocketDemoMain implements SwirldMain {
 		platform.setSleepAfterSync(sleepPeriod);
 
 		//Initialize the platform locator, so Exo code can get a reference to the platform when needed.
-		String[] transactionProcessorPackages = {"com.txmq.exo.messaging.rest", "com.txmq.socketdemo.transactions"}; 
-		ExoPlatformLocator.init(platform, transactionProcessorPackages);
-	}
-
-	@Override
-	public void run() {
-		
-		//Initialize the block logging system.  In this case, we're going to log blocks to CouchDB
-		System.out.println("Main creating logger for " + platform.getAddress().getSelfName());
+		String[] transactionProcessorPackages = {"com.txmq.exo.messaging.rest", "com.txmq.socketdemo.transactions"};
 		CouchDBBlockLogger blockLogger = new CouchDBBlockLogger(
 				"zoo-" + platform.getAddress().getSelfName().toLowerCase(),
 				"http",
 				//"couchdb",
 				"localhost",
 				5984);
-		BlockLogger.setLogger(blockLogger, platform.getAddress().getSelfName());
-		
+		ExoPlatformLocator.init(platform, transactionProcessorPackages, blockLogger);
+	}
+
+	@Override
+	public void run() {
 		
 		//Start up a new transaction server, which will listen for connections from the JAX-RS API
 		TransactionServer server = new TransactionServer(platform, platform.getState().getAddressBookCopy().getAddress(selfId).getPortExternalIpv4() + 1000);

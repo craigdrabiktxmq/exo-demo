@@ -95,7 +95,7 @@ public class CouchDBBlockLogger implements IBlockLogger {
 	 * 
 	 * TODO:  We probably don't need to track the transactions any more.
 	 * I was doing this while debugging the block writer.  The issue it
-	 * was intendedd to mitigate was probably fixed by tracking separate
+	 * was intended to mitigate was probably fixed by tracking separate
 	 * loggers for each node, and only logging transactions that have 
 	 * reached consensus
 	 */
