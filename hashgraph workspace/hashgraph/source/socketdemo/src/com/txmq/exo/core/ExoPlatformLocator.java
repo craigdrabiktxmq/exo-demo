@@ -16,6 +16,7 @@ import com.swirlds.platform.SwirldState;
 import com.txmq.exo.messaging.ExoMessage;
 import com.txmq.exo.messaging.ExoTransactionType;
 import com.txmq.exo.messaging.rest.CORSFilter;
+import com.txmq.exo.messaging.socket.TransactionServer;
 import com.txmq.exo.persistence.BlockLogger;
 import com.txmq.exo.persistence.IBlockLogger;
 import com.txmq.exo.transactionrouter.ExoTransactionRouter;
@@ -91,7 +92,6 @@ public class ExoPlatformLocator {
 		URI baseUri = UriBuilder.fromUri("http://0.0.0.0").port(port).build();
 		ResourceConfig config = new ResourceConfig()
 				.packages("com.txmq.exo.messaging.rest")
-//				.packages("com.txmq.socketdemo.rest")
 				.register(new CORSFilter())
 				.register(JacksonFeature.class);
 		
@@ -116,6 +116,11 @@ public class ExoPlatformLocator {
 			e1.printStackTrace();
 		}
 	}
+	
+	public static void initSocketMessaging(int port) {
+		new TransactionServer(platform, port).start();
+	}
+	
 	/**
 	 * Accessor for a reference to the Swirlds platform.  Developers must call 
 	 * ExoPlatformLocator.init() to intialize the locator before calling getPlatform()

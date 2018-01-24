@@ -93,14 +93,15 @@ public class SocketDemoMain implements SwirldMain {
 			platform.getState().getAddressBookCopy().getAddress(selfId).getPortExternalIpv4() + 2000, 
 			new String[] {"com.txmq.socketdemo.rest"}
 		);
+		
+		//Initialize socket server
+		ExoPlatformLocator.initSocketMessaging(
+			platform.getState().getAddressBookCopy().getAddress(selfId).getPortExternalIpv4() + 1000
+		);
 	}
 
 	@Override
 	public void run() {
-		
-		//Start up a new transaction server, which will listen for connections from the JAX-RS API
-		TransactionServer server = new TransactionServer(platform, platform.getState().getAddressBookCopy().getAddress(selfId).getPortExternalIpv4() + 1000);
-		server.start();
 		
 		while (true) {
 			try {
