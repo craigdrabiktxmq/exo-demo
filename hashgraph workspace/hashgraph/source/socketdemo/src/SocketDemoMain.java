@@ -86,7 +86,12 @@ public class SocketDemoMain implements SwirldMain {
 				//"couchdb",
 				"localhost",
 				5984);
-		ExoPlatformLocator.init(platform, transactionProcessorPackages, blockLogger);
+		ExoPlatformLocator.init(platform, SocketDemoTransactionTypes.class, transactionProcessorPackages, blockLogger);
+		
+		//Initialize REST endpoints exposed by this Hashgraph
+		int port = platform.getState().getAddressBookCopy().getAddress(selfId).getPortExternalIpv4() + 2000;
+		String[] packages = {"com.txmq.socketdemo.rest"};
+		ExoPlatformLocator.initREST(port, packages);
 	}
 
 	@Override
@@ -101,32 +106,10 @@ public class SocketDemoMain implements SwirldMain {
 		 * their handlers.  We can use this to replace the big switch statement in 
 		 * SocketDemoState.handleTransaction()
 		 */
-		//Set up a REST endpoint as well
-		int port = platform.getState().getAddressBookCopy().getAddress(selfId).getPortExternalIpv4() + 2000;
-		//URI baseUri = UriBuilder.fromUri("http://localhost").port(port).build();
-		URI baseUri = UriBuilder.fromUri("http://0.0.0.0").port(port).build();
-		ResourceConfig config = new ResourceConfig()
-				.packages("com.txmq.exo.messaging.rest")
-				.packages("com.txmq.socketdemo.rest")
-				.register(new CORSFilter())
-				.register(JacksonFeature.class);
-
-		System.out.println("Attempting to start Grizzly on " + baseUri);
-		HttpServer httpServer = GrizzlyHttpServerFactory.createHttpServer(baseUri, config);
+		
 	
 		//Announce our REST service to the rest of the participants
-		try {
-			this.platform.createTransaction(
-				new ExoMessage(
-					new SocketDemoTransactionTypes(SocketDemoTransactionTypes.ANNOUNCE_NODE), 
-					baseUri.toString()
-				).serialize(), 
-				null
-			);
-		} catch (IOException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
+		
 		
 		while (true) {
 			try {

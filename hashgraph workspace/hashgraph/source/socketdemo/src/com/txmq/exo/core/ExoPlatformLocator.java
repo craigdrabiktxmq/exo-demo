@@ -1,10 +1,25 @@
 package com.txmq.exo.core;
 
+import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.net.URI;
+
+import javax.ws.rs.core.UriBuilder;
+
+import org.glassfish.grizzly.http.server.HttpServer;
+import org.glassfish.jersey.grizzly2.httpserver.GrizzlyHttpServerFactory;
+import org.glassfish.jersey.jackson.JacksonFeature;
+import org.glassfish.jersey.server.ResourceConfig;
+
 import com.swirlds.platform.Platform;
 import com.swirlds.platform.SwirldState;
+import com.txmq.exo.messaging.ExoMessage;
+import com.txmq.exo.messaging.ExoTransactionType;
+import com.txmq.exo.messaging.rest.CORSFilter;
 import com.txmq.exo.persistence.BlockLogger;
 import com.txmq.exo.persistence.IBlockLogger;
 import com.txmq.exo.transactionrouter.ExoTransactionRouter;
+import com.txmq.socketdemo.SocketDemoTransactionTypes;
 
 /**
  * A static locator class for Exo platform constructs.  This class allows applications
@@ -40,23 +55,67 @@ public class ExoPlatformLocator {
 		
 	}
 	
-	public static void init(Platform platform, String[] transactionProcessorPackages) {
+	public static void init(	Platform platform, 
+							Class<? extends ExoTransactionType> transactionTypeClass, 
+							String[] transactionProcessorPackages) {
 		init(platform);
+		
+		//Hokey, but we cause the transaction type class to initialize itself by simply instantiating one..
+		try {
+			transactionTypeClass.newInstance();
+		} catch (InstantiationException | IllegalAccessException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
 		for (String tpp : transactionProcessorPackages) {
 			transactionRouter.addPackage(tpp);
 		}
 	}
 	
-	public static void init(Platform platform, String[] transactionProcessorPackages, IBlockLogger logger) {
-		init(platform, transactionProcessorPackages);
+	public static void init(	Platform platform, 
+							Class<? extends ExoTransactionType> transactionTypeClass,
+							String[] transactionProcessorPackages, 
+							IBlockLogger logger) {
+		init(platform, transactionTypeClass, transactionProcessorPackages);
 		blockLogger.setLogger(logger,  platform.getAddress().getSelfName());
-	}
+	}	
 	
-	public static void init(Platform platform, String[] transactionProcessorPackages, IBlockLogger logger, String nodeName) {
-		init(platform, transactionProcessorPackages);
-		blockLogger.setLogger(logger,  nodeName);
+	/**
+	 * Initializes Grizzly-based REST interfaces defined in the included package list, listening on the included port.
+	 * Enabling REST will automatically expose the endpoints service and generate an ANNOUNCE_NODE message.
+	 * @param port
+	 * @param packages
+	 */
+	public static void initREST(int port, String[] packages) {
+		URI baseUri = UriBuilder.fromUri("http://0.0.0.0").port(port).build();
+		ResourceConfig config = new ResourceConfig()
+				.packages("com.txmq.exo.messaging.rest")
+//				.packages("com.txmq.socketdemo.rest")
+				.register(new CORSFilter())
+				.register(JacksonFeature.class);
+		
+		for (String pkg : packages) {
+			config.packages(pkg);
+		}
+		
+		System.out.println("Attempting to start Grizzly on " + baseUri);
+		GrizzlyHttpServerFactory.createHttpServer(baseUri, config);
+		
+		try {
+			platform.createTransaction(
+				new ExoMessage(
+					new ExoTransactionType(ExoTransactionType.ANNOUNCE_NODE),
+					baseUri.toString()
+				).serialize(),
+				null
+			);
+					
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
 	}
-	
 	/**
 	 * Accessor for a reference to the Swirlds platform.  Developers must call 
 	 * ExoPlatformLocator.init() to intialize the locator before calling getPlatform()
