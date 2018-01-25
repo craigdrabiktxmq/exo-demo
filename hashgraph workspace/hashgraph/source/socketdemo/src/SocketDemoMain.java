@@ -83,8 +83,8 @@ public class SocketDemoMain implements SwirldMain {
 		CouchDBBlockLogger blockLogger = new CouchDBBlockLogger(
 				"zoo-" + platform.getAddress().getSelfName().toLowerCase(),
 				"http",
-				//"couchdb",
-				"localhost",
+				"couchdb",
+				//"localhost",
 				5984);
 		ExoPlatformLocator.init(platform, SocketDemoTransactionTypes.class, transactionProcessorPackages, blockLogger);
 		
