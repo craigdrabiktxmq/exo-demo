@@ -93,7 +93,7 @@ public class SwirldsAdaptor {
 		}
 	}
 	
-	public SwirldsMessage sendTransaction(SocketDemoTransactionTypes transactionType, Serializable payload) {
+	public ExoMessage sendTransaction(SocketDemoTransactionTypes transactionType, Serializable payload) {
 		if (this.socket == null) {
 			throw new IllegalStateException("A socket has not been created");
 		}
@@ -112,14 +112,14 @@ public class SwirldsAdaptor {
 			//PrintWriter writer = new PrintWriter(socket.getOutputStream(), true);
 			ObjectInputStream reader = new ObjectInputStream(socket.getInputStream());
 			ObjectOutputStream writer = new ObjectOutputStream(this.socket.getOutputStream());
-			SwirldsMessage message = new SwirldsMessage();
+			ExoMessage message = new ExoMessage();
 			
 			message.transactionType = transactionType;
 			message.payload = payload;
 			writer.writeObject(message);
 			writer.flush();
 			
-			SwirldsMessage response = (SwirldsMessage) reader.readObject();
+			ExoMessage response = (ExoMessage) reader.readObject();
 			return response;
 		} catch (IOException e) {
 			// TODO Auto-generated catch block

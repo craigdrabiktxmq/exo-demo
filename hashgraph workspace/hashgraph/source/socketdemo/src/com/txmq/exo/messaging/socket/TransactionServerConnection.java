@@ -9,6 +9,7 @@ import java.net.Socket;
 
 import com.swirlds.platform.Platform;
 import com.txmq.exo.messaging.ExoTransactionType;
+import com.txmq.exo.transactionrouter.ExoTransactionRouter;
 import com.txmq.exo.messaging.ExoMessage;
 import com.txmq.socketdemo.SocketDemoState;
 import com.txmq.socketdemo.SocketDemoTransactionTypes;
@@ -23,18 +24,16 @@ public class TransactionServerConnection extends Thread {
 
 	private Socket socket;
 	private Platform platform;
+	private ExoTransactionRouter transactionRouter;
 	
-	public TransactionServerConnection(Socket socket, Platform platform) {
+	public TransactionServerConnection(Socket socket, Platform platform, ExoTransactionRouter transactionRouter) {
 		this.socket = socket;
 		this.platform = platform;
+		this.transactionRouter = transactionRouter;
 	}
 	
 	/**
 	 * Accepts transactions in ExoMessage instances from the socket and process them.
-	 * 
-	 * TODO:  Christ this code is old..  I hadn't realized I was processing the transactions 
-	 * hard-coded and in place.  This needs to get hooked into the framework somehow so logic 
-	 * can be reused.
 	 */
 	public void run() {
 		try {
@@ -49,33 +48,26 @@ public class TransactionServerConnection extends Thread {
 				message = (ExoMessage) tmp; 
 				SocketDemoState state = (SocketDemoState) this.platform.getState();
 				
-				//Process the message..  This needs to be re-architected
-				//TOO:  Fix this shizz
-				switch(message.transactionType.getValue()) {
-					case SocketDemoTransactionTypes.ACKNOWLEDGE:
+				try {
+					response = (ExoMessage) this.transactionRouter.routeTransaction(message, state);
+				} catch (IllegalArgumentException e) {
+					/*
+					 * This exception is thrown by transactionRouter when it can't figure 
+					 * out where to route a message.  In the case of socket transactions, 
+					 * those transaction types it can't route are messages that we can 
+					 * simply pass through to the platform for processing by the Hashgraph,
+					 * unless it's an ACKNOWLEDGE transaction.
+					 */
+					if (message.transactionType.getValue() == SocketDemoTransactionTypes.ACKNOWLEDGE) {
 						//We shouldn't receive this from the client.  If we do, just send it back
 						response.transactionType.setValue(SocketDemoTransactionTypes.ACKNOWLEDGE);
-						break;
-					case SocketDemoTransactionTypes.GET_ZOO:
-						//This is a read transaction, so no need to call Platform.createTransaction().
-						//We can read what we need out of state and return it.
-						Zoo zoo = new Zoo();
-						zoo.setLions(state.getLions());
-						zoo.setTigers(state.getTigers());
-						zoo.setBears(state.getBears());
-						
+					} else {	
+						this.platform.createTransaction(message.serialize(), null);
 						response.transactionType.setValue(ExoTransactionType.ACKNOWLEDGE);
-						response.payload = zoo;
-						break;
-					default:
-						//ADD_ANIMAL requires us to submit a transaction to the hashgraph.
-						ByteArrayOutputStream bytesOut = new ByteArrayOutputStream();
-						ObjectOutput out = new ObjectOutputStream(bytesOut);
-						out.writeObject(message);
-						out.flush();
-						this.platform.createTransaction(bytesOut.toByteArray(), null);
-						
-						response.transactionType.setValue(ExoTransactionType.ACKNOWLEDGE);						
+					}
+				} catch (ReflectiveOperationException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
 				}
 				
 				//write the response to the socket

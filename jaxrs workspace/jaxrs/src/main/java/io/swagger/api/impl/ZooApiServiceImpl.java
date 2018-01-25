@@ -12,8 +12,8 @@ import java.io.InputStream;
 
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 
+import com.txmq.exo.messaging.ExoMessage;
 import com.txmq.exo.messaging.SwirldsAdaptor;
-import com.txmq.exo.messaging.SwirldsMessage;
 import com.txmq.socketdemo.SocketDemoTransactionTypes;
 
 import javax.ws.rs.core.Response;
@@ -38,7 +38,7 @@ public class ZooApiServiceImpl extends ZooApiService {
 	@Override
 	public Response getZoo(SecurityContext securityContext) throws NotFoundException {
 		SwirldsAdaptor adaptor = new SwirldsAdaptor();
-		SwirldsMessage response = adaptor.sendTransaction(new SocketDemoTransactionTypes(SocketDemoTransactionTypes.GET_ZOO), null);
+		ExoMessage response = adaptor.sendTransaction(new SocketDemoTransactionTypes(SocketDemoTransactionTypes.GET_ZOO), null);
 		return Response.ok().entity(response.payload).build();
 	}
 }
