@@ -5,6 +5,8 @@ This project contains a demonstration of a web application communicating with a 
 - Through a JAX-RS based REST API.  The JAX-RS application communicates with the Swirld via a TLS-secured, authenticated socket.  
 - Directly to the Swirld via a REST API embedded in the Swirld itself.
 
+NOTE:  THIS DOCUMENT IS OUT OF DATE...  AN UPDATE IS COMING SOON.
+
 Running the Application
 -----------------------
 1. Install docker
