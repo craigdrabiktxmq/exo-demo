@@ -20,3 +20,4 @@ RemoteSystemsTempFiles
 hashgraph\ workspace/hashgraph/data
 hashgraph\ workspace/hashgraph/swirlds.jar
 **/target
+**/.DS_Store
