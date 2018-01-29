@@ -27,27 +27,23 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManagerFactory;
 
+import com.txmq.exo.config.ExoConfig;
 import com.txmq.exo.messaging.routing.*;
 import com.txmq.socketdemo.SocketDemoTransactionTypes;
 
 public class SwirldsAdaptor {
 	
+	private static ExoConfig config;
 	private static INodeRouter nodeRouter;
 	
 	private Socket socket;
 	
 	public SwirldsAdaptor() {
 		//Set up the list of available nodes
-		//TODO:  Move this into a config file
-		List<SocketAddress> nodes = new ArrayList<SocketAddress>();
-		nodes.add(new InetSocketAddress("hashgraph", 51204));
-		nodes.add(new InetSocketAddress("hashgraph", 51205));
-		nodes.add(new InetSocketAddress("hashgraph", 51206));
-		nodes.add(new InetSocketAddress("hashgraph", 51207));
 		
 		if (SwirldsAdaptor.nodeRouter == null) {
 			SwirldsAdaptor.nodeRouter = new FixedNodeRouter();
-			SwirldsAdaptor.nodeRouter.setAvailableNodes(nodes);
+			SwirldsAdaptor.nodeRouter.setAvailableNodes(ExoConfig.getConfig().clientConfig.getKnownSockets());
 		}
 		
 		try {
