@@ -1,0 +1,22 @@
+{
+	"clientConfig": {
+		"knownSockets": [
+			{
+				"hostname": "hashgraph",
+				"port": 51204
+			},
+			{
+				"hostname": "hashgraph",
+				"port": 51205
+			},
+			{
+				"hostname": "hashgraph",
+				"port": 51206
+			},
+			{
+				"hostname": "hashgraph",
+				"port": 51207
+			}		
+		]
+	}
+}
