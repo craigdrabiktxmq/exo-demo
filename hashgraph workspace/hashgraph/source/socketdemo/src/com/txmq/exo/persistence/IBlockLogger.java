@@ -1,5 +1,7 @@
 package com.txmq.exo.persistence;
 
+import org.apache.commons.collections4.keyvalue.DefaultKeyValue;
+
 import com.txmq.exo.messaging.ExoMessage;
 
 /**
@@ -19,4 +21,10 @@ public interface IBlockLogger {
      */
     public void save(Block block);
     
+    /**
+     * Used to configure a logger from an exo-config file.  The contents 
+     * of the parameter list will be specific to each logger
+     * @param parameters
+     */
+    public void configure(DefaultKeyValue<String, String>[] parameters);
 }
