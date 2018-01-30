@@ -79,8 +79,7 @@ public class SocketDemoMain implements SwirldMain {
 		platform.setAbout("Hello Swirld v. 1.0\n"); // set the browser's "about" box
 		platform.setSleepAfterSync(sleepPeriod);
 
-		ExoConfig config = ExoConfig.getConfig();
-		ExoPlatformLocator.initFromConfig(platform, "exo-config.json");
+		ExoPlatformLocator.initFromConfig(platform);
 		
 		/*
 		//Initialize the platform locator, so Exo code can get a reference to the platform when needed.
@@ -100,11 +99,15 @@ public class SocketDemoMain implements SwirldMain {
 		);
 		
 		//Initialize socket server
-		ExoPlatformLocator.initSocketMessaging(
+		ExoPlatformLocator.initSecuredSocketMessaging(
 			platform.getState().getAddressBookCopy().getAddress(selfId).getPortExternalIpv4() + 1000,
-			new String[] {"com.txmq.socketdemo.socket"}
+			new String[] {"com.txmq.socketdemo.socket"},
+			"client.public",
+			"client",
+			"server.private",
+			"server"			
 		);
-		*/
+		 */
 	}
 
 	@Override

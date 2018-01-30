@@ -90,6 +90,8 @@ public class SwirldsAdaptor {
 			
 			SSLSocketFactory socketFactory = sslContext.getSocketFactory();
 			InetSocketAddress destination = (InetSocketAddress) SwirldsAdaptor.nodeRouter.getNode();
+
+			System.out.println("Attempting to create a connection to " + destination.getHostName() + ":" + destination.getPort());
 			this.socket = socketFactory.createSocket(destination.getHostName(), destination.getPort());  //new Socket(HOST, PORT);
 		} catch (	IOException | 
 					KeyStoreException | 

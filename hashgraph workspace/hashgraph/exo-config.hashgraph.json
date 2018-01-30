@@ -8,6 +8,7 @@
 		"socketMessaging": {
 			"port": -1,
 			"derivedPort": 1000,
+			"secured": false,
 			"handlers": [
 				"com.txmq.socketdemo.socket"
 			]

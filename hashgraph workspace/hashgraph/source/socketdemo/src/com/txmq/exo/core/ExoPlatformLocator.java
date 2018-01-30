@@ -77,7 +77,16 @@ public class ExoPlatformLocator {
 		if (config.hashgraphConfig.socketMessaging != null) {
 			try {
 				messagingConfig = parseMessagingConfig(config.hashgraphConfig.socketMessaging);
-				initSocketMessaging(messagingConfig.port, messagingConfig.handlers);
+				if (messagingConfig.secured == true) {
+					initSecuredSocketMessaging(	messagingConfig.port, 
+												messagingConfig.handlers, 
+												messagingConfig.clientKeystore.path, 
+												messagingConfig.clientKeystore.password, 
+												messagingConfig.serverKeystore.path, 
+												messagingConfig.serverKeystore.password);
+				} else {
+					initSocketMessaging(messagingConfig.port, messagingConfig.handlers);
+				}
 			} catch (IllegalArgumentException e) {
 				throw new IllegalArgumentException("Error configuring socket messaging:  " + e.getMessage());
 			}
@@ -127,12 +136,16 @@ public class ExoPlatformLocator {
 		
 		if (config.handlers != null && config.handlers.length > 0) {
 			result.handlers = config.handlers;
-			return result;
 		} else {
 			throw new IllegalArgumentException(
 				"No handlers were defined in configuration"
 			);
-		}		
+		}
+		
+		result.secured = config.secured;
+		result.clientKeystore = config.clientKeystore;
+		result.serverKeystore = config.serverKeystore;
+		return result;
 	}
 	
 	/**
@@ -223,11 +236,41 @@ public class ExoPlatformLocator {
 	 * @ExoTransaction and automatically maps incoming messages to matching handlers.  
 	 * Any transactions which have not been mapped are passed through the platform to
 	 * be processed by the model.  
+	 * 
+	 * This method creates unsecured sockets with no authentication or in-transit encryption.  
+	 * Beware of dragons.
+	 * 
 	 * @param port
 	 * @param packages
 	 */
 	public static void initSocketMessaging(int port, String[] packages) {
 		new TransactionServer(platform, port, packages).start();
+	}
+	
+	/**
+	 * Sets up a TLS-encrypted socket-based API for communicating with this Swirld on 
+	 * the supplied port.  X.509 certs are used to authenticate connecting clients, 
+	 * and vice-versa.  Scans the supplied list of packages for methods annotated with 
+	 * @ExoTransaction and automatically maps incoming messages to matching handlers.  
+	 * Any transactions which have not been mapped are passed through the platform to
+	 * be processed by the model.
+	 * 
+	 * @param port
+	 * @param packages
+	 */
+	public static void initSecuredSocketMessaging(	int port, 
+													String[] packages, 
+													String clientKeystorePath,
+													String clientKeystorePassword,
+													String serverKeystorePath,
+													String serverKeystorePassword) {
+		new TransactionServer(	platform, 
+								port, 
+								packages, 
+								clientKeystorePath, 
+								clientKeystorePassword, 
+								serverKeystorePath, 
+								serverKeystorePassword).start();
 	}
 	
 	/**

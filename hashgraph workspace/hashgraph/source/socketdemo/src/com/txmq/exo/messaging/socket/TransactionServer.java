@@ -2,6 +2,7 @@ package com.txmq.exo.messaging.socket;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.net.ServerSocket;
 import java.net.Socket;
 import java.security.KeyManagementException;
 import java.security.KeyStore;
@@ -40,18 +41,37 @@ public class TransactionServer extends Thread {
 	 * TDOD:  We can replace this with ExoPlatformLocator
 	 */
 	private Platform platform;
-	private SSLServerSocket serverSocket;
+	private ServerSocket serverSocket;
 	private ExoTransactionRouter transactionRouter;
 	
+	/**
+	 * Creates an unsecured socket connection listening on the supplied port.
+	 * 
+	 * @param platform
+	 * @param port
+	 * @param packages
+	 */
 	public TransactionServer(Platform platform, int port, String[] packages) {
-		this.platform = platform;
 		
-		//Set up a transaction router for socket requests
-		this.transactionRouter = new ExoTransactionRouter();
-		for (String pkg : packages) {
-			this.transactionRouter.addPackage(pkg);
+		this.initialize(platform, packages);
+		try {
+			this.serverSocket = new ServerSocket(port);
+			System.out.println("WARNING:  Unsecured socket has been opened for transactions");
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
+	}
+	
+	public TransactionServer(Platform platform, 
+							int port, 
+							String[] packages, 
+							String clientKeystorePath,
+							String clientKeystorePassword,
+							String serverKeystorePath,
+							String serverKeystorePassword) {
 		
+		this.initialize(platform, packages);
 		try {
 			//Set up all the cryptography..  The certificates are known in advance, and used
 			// to authenticate client/server and establish TLS encrypted connections.
@@ -59,24 +79,27 @@ public class TransactionServer extends Thread {
 			secureRandom.nextInt();
 			
 			KeyStore clientKeyStore = KeyStore.getInstance("JKS");
-			clientKeyStore.load(new FileInputStream("client.public"), "client".toCharArray());
+			clientKeyStore.load(new FileInputStream(clientKeystorePath), clientKeystorePassword.toCharArray());
 			
 			KeyStore serverKeyStore = KeyStore.getInstance("JKS");
-			serverKeyStore.load(new FileInputStream("server.private"), "server".toCharArray());
+			serverKeyStore.load(new FileInputStream(serverKeystorePath), serverKeystorePassword.toCharArray());
 			
 			TrustManagerFactory tmf = TrustManagerFactory.getInstance("SunX509");
 			tmf.init(clientKeyStore);
 			
 			KeyManagerFactory kmf = KeyManagerFactory.getInstance("SunX509");
-			kmf.init(serverKeyStore, "server".toCharArray());
+			kmf.init(serverKeyStore, serverKeystorePassword.toCharArray());
 			
 			SSLContext sslContext = SSLContext.getInstance("TLS");
 			sslContext.init(kmf.getKeyManagers(), tmf.getTrustManagers(), secureRandom);
 			
 			//Now that we're set up for SS:, create the listener socket.
 			SSLServerSocketFactory socketFactory = sslContext.getServerSocketFactory();
-			this.serverSocket = (SSLServerSocket) socketFactory.createServerSocket(port);  //new Socket(HOST, PORT);
-			this.serverSocket.setNeedClientAuth(true);
+			
+			SSLServerSocket serverSocket = (SSLServerSocket) socketFactory.createServerSocket(port);
+			serverSocket.setNeedClientAuth(true);
+			this.serverSocket = serverSocket;
+			
 			System.out.println("Listening on port " + String.valueOf(port));
 					
 		} catch (IOException e) {
@@ -99,7 +122,24 @@ public class TransactionServer extends Thread {
 			e.printStackTrace();
 		}
 	}
-	
+
+	/**
+	 * Initializes the TransactionServer instance with a reference to the 
+	 * platform and a list of packages to scan for routing annotations.
+	 * 
+	 * @param platform
+	 * @param packages
+	 */
+	private void initialize(Platform platform, String[] packages) {
+		this.platform = platform;
+		
+		//Set up a transaction router for socket requests
+		this.transactionRouter = new ExoTransactionRouter();
+		for (String pkg : packages) {
+			this.transactionRouter.addPackage(pkg);
+		}
+	}
+
 	/**
 	 * Starts the server-side socket and spawns TransactionServerConnection threads when clients connect
 	 */
