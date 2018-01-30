@@ -13,6 +13,8 @@ import org.glassfish.jersey.server.ResourceConfig;
 
 import com.swirlds.platform.Platform;
 import com.swirlds.platform.SwirldState;
+import com.txmq.exo.config.ExoConfig;
+import com.txmq.exo.config.MessagingConfig;
 import com.txmq.exo.messaging.ExoMessage;
 import com.txmq.exo.messaging.ExoTransactionType;
 import com.txmq.exo.messaging.rest.CORSFilter;
@@ -46,6 +48,103 @@ public class ExoPlatformLocator {
 	 * Reference to the block logging manager
 	 */
 	private static BlockLogger blockLogger = new BlockLogger();
+
+	/**
+	 * Initializes the platform from an exo-config.json file located 
+	 * in the same directory as the application runs in.
+	 * @throws ClassNotFoundException 
+	 */
+	public static synchronized void initFromConfig(Platform platform) {
+		ExoPlatformLocator.platform = platform;
+		String nodeName = platform.getAddress().getSelfName();
+		ExoConfig config = ExoConfig.getConfig();
+		
+		//Initialize transaction types
+		Class<? extends ExoTransactionType> transactionTypeClass;
+		try {
+			Class<?> ttClass = Class.forName(config.hashgraphConfig.transactionTypesClassName);
+			transactionTypeClass = (Class<? extends ExoTransactionType>) ttClass;			
+		} catch (ClassNotFoundException e) {
+			throw new IllegalArgumentException(
+				"Error instantiating transaction types enumerator: " + config.hashgraphConfig.transactionTypesClassName
+			);
+		}
+		
+		init(platform, transactionTypeClass, config.hashgraphConfig.transactionProcessors);
+		
+		//Set up socket messaging, if it's in the config..
+		MessagingConfig messagingConfig = null; 
+		if (config.hashgraphConfig.socketMessaging != null) {
+			try {
+				messagingConfig = parseMessagingConfig(config.hashgraphConfig.socketMessaging);
+				initSocketMessaging(messagingConfig.port, messagingConfig.handlers);
+			} catch (IllegalArgumentException e) {
+				throw new IllegalArgumentException("Error configuring socket messaging:  " + e.getMessage());
+			}
+		}
+		
+		//Set up REST, if it's in the config..
+		if (config.hashgraphConfig.rest != null) {
+			try {
+				messagingConfig = parseMessagingConfig(config.hashgraphConfig.rest);
+				initREST(messagingConfig.port, messagingConfig.handlers);
+			} catch (IllegalArgumentException e) {
+				throw new IllegalArgumentException("Error configuring REST:  " + e.getMessage());
+			}
+		}
+		
+		//configure block logging, if indicated in the config file
+		if (config.hashgraphConfig.blockLogger != null) {
+			try {
+				Class<? extends IBlockLogger> loggerClass = 
+					(Class<? extends IBlockLogger>) Class.forName(config.hashgraphConfig.blockLogger.loggerClass);
+				IBlockLogger logger = loggerClass.newInstance();
+				logger.configure(config.hashgraphConfig.blockLogger.parameters);
+				blockLogger.setLogger(logger, nodeName);
+			} catch (ClassNotFoundException | InstantiationException | IllegalAccessException e) {
+				throw new IllegalArgumentException("Error configuring block logger:  " + e.getMessage());
+			}			
+		}				
+	}
+	
+	private static MessagingConfig parseMessagingConfig(MessagingConfig config) {
+		MessagingConfig result = new MessagingConfig();
+		
+		//If a port has been defined in the config, use it over the derived port.
+		if (config.port > 0) {
+			result.port = config.port;				
+		} else {
+			//Test if there's a derived port value.  If not, we have an invalid messaging config
+			if (config.derivedPort != null) {
+				//Calculate the port for socket connections based on the hashgraph's port
+				result.port = platform.getAddress().getPortExternalIpv4() + config.derivedPort;
+			} else {
+				throw new IllegalArgumentException(
+					"One of \"port\" or \"derivedPort\" must be defined."
+				);
+			}
+		}
+		
+		if (config.handlers != null && config.handlers.length > 0) {
+			result.handlers = config.handlers;
+			return result;
+		} else {
+			throw new IllegalArgumentException(
+				"No handlers were defined in configuration"
+			);
+		}		
+	}
+	
+	/**
+	 * Initializes the platform from an exo-condig.json 
+	 * file located using the path parameter.
+	 * @param path
+	 * @throws ClassNotFoundException 
+	 */
+	public static synchronized void initFromConfig(Platform platform, String path) {
+		ExoConfig.loadConfiguration(path);
+		initFromConfig(platform);
+	}
 	
 	/**
 	 * Initialization method for the platform.  This should be called by your main's 
@@ -73,6 +172,7 @@ public class ExoPlatformLocator {
 			transactionRouter.addPackage(tpp);
 		}
 	}
+	
 	
 	public static synchronized void init(	Platform platform, 
 							Class<? extends ExoTransactionType> transactionTypeClass,

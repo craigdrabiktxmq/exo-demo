@@ -1,5 +1,7 @@
 package com.txmq.exo.persistence.nulllogger;
 
+import org.apache.commons.collections4.keyvalue.DefaultKeyValue;
+
 import com.txmq.exo.messaging.ExoMessage;
 import com.txmq.exo.persistence.Block;
 import com.txmq.exo.persistence.IBlockLogger;
@@ -19,6 +21,11 @@ public class NullBlockLogger implements IBlockLogger {
 
 	@Override
 	public void save(Block block) {
+		return;
+	}
+
+	@Override
+	public void configure(DefaultKeyValue<String, String>[] parameters) {
 		return;
 	}
 

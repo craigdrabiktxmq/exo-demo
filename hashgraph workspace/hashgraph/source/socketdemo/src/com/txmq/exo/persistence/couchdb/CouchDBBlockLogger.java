@@ -1,10 +1,13 @@
 package com.txmq.exo.persistence.couchdb;
 
+import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.commons.collections4.keyvalue.DefaultKeyValue;
 import org.apache.commons.collections4.map.HashedMap;
 import org.lightcouch.CouchDbClient;
 
+import com.txmq.exo.core.ExoPlatformLocator;
 import com.txmq.exo.messaging.ExoMessage;
 import com.txmq.exo.persistence.Block;
 import com.txmq.exo.persistence.IBlockLogger;
@@ -27,14 +30,11 @@ public class CouchDBBlockLogger implements IBlockLogger {
 	private Map<Integer, Integer> processedTransactions = new HashedMap<Integer, Integer>();
 	
 	/**
-	 * No-op constructor, will construct a logger pointed at the 
-	 * database identified by the LightCouch properties file.
-	 * 
-	 * @see org.lightcouch.CouchDbClient
+	 * No-op constructor, intended to be used in conjunction with the configure() method.  
+	 * Unlike other constructors, this one does not result in a ready-to-use logger instance.
 	 */
 	public CouchDBBlockLogger() {
-		this.client = new CouchDbClient();
-		this.initialize();
+		
 	}
 	
 	/**
@@ -126,6 +126,69 @@ public class CouchDBBlockLogger implements IBlockLogger {
 		blockToSave.commit();
 		this.block.setPreviousBlockHash(blockToSave.getHash());
 		this.client.save(blockToSave);
+	}
+
+	/**
+	 * Configures a CouchDBBlockLogger instance from a list of 
+	 * key-value parameters loaded from an exo-config file.
+	 * 
+	 * Expected parameters are:  
+	 * databaseName		The name of the CouchDB database to log to
+	 * useAsPrefix		When true, the logger will append the node's 
+	 * 					name to the "databaseName" value when determining 
+	 * 					the database name
+	 * host				Identifies the CouchDB instance hostname
+	 * port				Identifies the CouchDB listener port
+	 * prototcol			(optional) Should be "http" or "https" depending on your 
+	 * 					CouchDB configuration.  Defaults to "http"
+	 * username			(optional) Specifies the username to log into couchDB with
+	 * password			(optional) Specifies the password to log into couchDB with
+	 * blockSize			(optional) Determines the number of transactions in 
+	 * 					a block.  Defaults to 4.
+	 * createDb			(optional) Create the database if it doesn't already exist
+	 */
+	@Override
+	public void configure(DefaultKeyValue<String, String>[] parameters) {
+		//Organize parameters into a map for easy access
+		Map<String, String> parameterMap = new HashMap<String, String>();
+		for (DefaultKeyValue<String, String> parameter : parameters) {
+			parameterMap.put(parameter.getKey(), parameter.getValue());
+		}
+		
+		//Determine database name
+		String databaseName = parameterMap.get("databaseName");
+		if (parameterMap.containsKey("useAsPrefix") && parameterMap.get("useAsPrefix").equals("true")) {
+			databaseName = databaseName + ExoPlatformLocator.getPlatform().getAddress().getSelfName().toLowerCase();
+		}
+		
+		//Determine protocol
+		String protocol;
+		if (parameterMap.containsKey("protocol")) {
+			protocol = parameterMap.get("protocol");
+		} else {
+			protocol = "http";
+		}
+		
+		//Determine if we should create the database, if it doesn't exist
+		boolean createDB = parameterMap.containsKey("createDb") && parameterMap.get("createDb").equals("true");
+		
+		//See if a block size is defined in the config
+		if (parameterMap.containsKey("blockSize")) {
+			BLOCK_SIZE = Integer.parseInt(parameterMap.get("blockSize"));
+		}
+		
+		this.client = new CouchDbClient(
+			databaseName, 
+			createDB, 
+			protocol, 
+			parameterMap.get("host"), 
+			Integer.parseInt(parameterMap.get("port")),
+			parameterMap.get("username"),
+			parameterMap.get("password")
+		);
+		
+		this.initialize();
+		
 	}
 
 }
