@@ -6,6 +6,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ClientConfig {
+	public boolean encrypted;
+	public KeystoreConfig clientKeystore;
+	public KeystoreConfig serverKeystore;
 	public List<NodeAddress> knownSockets;
 	
 	public List<SocketAddress> getKnownSockets() {

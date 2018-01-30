@@ -9,6 +9,7 @@ public class ExoConfig {
 	private static ExoConfig configuration;
 	
 	public ClientConfig clientConfig;
+	public HashgraphConfig hashgraphConfig;
 	
 	public static void loadConfiguration(String path) {
 		ObjectMapper mapper = new ObjectMapper();
