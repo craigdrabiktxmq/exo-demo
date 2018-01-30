@@ -6,6 +6,7 @@ FROM maven:3.3-jdk-8 AS hg-build
 #ENTRYPOINT ./build.sh
 
 ADD ./hashgraph /opt/maven
+copy ./hashgraph/exo-config.hashgraph.json /opt/maven/exo-config.json
 WORKDIR /opt/maven/source/socketdemo
 RUN mvn install -e
 

@@ -1,0 +1,35 @@
+{
+	"hashgraphConfig": {
+		"transactionTypesClassName": "com.txmq.socketdemo.SocketDemoTransactionTypes",
+		"transactionProcessors": [
+			"com.txmq.exo.messaging.rest",
+			"com.txmq.socketdemo.transactions"
+		],
+		"socketMessaging": {
+			"port": -1,
+			"derivedPort": 1000,
+			"handlers": [
+				"com.txmq.socketdemo.socket"
+			]
+		},
+		"rest": {
+			"port": -1,
+			"derivedPort": 2000,
+			"handlers": [
+				"com.txmq.socketdemo.rest"
+			]
+		},
+		"blockLogger": {
+			"loggerClass": "com.txmq.exo.persistence.couchdb.CouchDBBlockLogger",
+			"parameters": [
+				{ "key": "databaseName", "value": "zoo-"},
+				{ "key": "useAsPrefix", "value": "true"},
+				{ "key": "protocol", "value": "http"},
+				{ "key": "host", "value": "localhost"},
+				{ "key": "port", "value": "5984"},
+				{ "key": "blockSize", "value": 5},
+				{ "key": "createDb", "value": "true"}
+			]
+		}
+	}
+}

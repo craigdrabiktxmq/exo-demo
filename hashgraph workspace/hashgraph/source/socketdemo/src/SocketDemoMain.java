@@ -22,6 +22,7 @@ import com.swirlds.platform.Console;
 import com.swirlds.platform.Platform;
 import com.swirlds.platform.SwirldMain;
 import com.swirlds.platform.SwirldState;
+import com.txmq.exo.config.ExoConfig;
 import com.txmq.exo.core.ExoPlatformLocator;
 import com.txmq.exo.messaging.ExoMessage;
 import com.txmq.exo.messaging.rest.CORSFilter;
@@ -78,6 +79,10 @@ public class SocketDemoMain implements SwirldMain {
 		platform.setAbout("Hello Swirld v. 1.0\n"); // set the browser's "about" box
 		platform.setSleepAfterSync(sleepPeriod);
 
+		ExoConfig config = ExoConfig.getConfig();
+		ExoPlatformLocator.initFromConfig(platform, "exo-config.json");
+		
+		/*
 		//Initialize the platform locator, so Exo code can get a reference to the platform when needed.
 		String[] transactionProcessorPackages = {"com.txmq.exo.messaging.rest", "com.txmq.socketdemo.transactions"};
 		CouchDBBlockLogger blockLogger = new CouchDBBlockLogger(
@@ -99,6 +104,7 @@ public class SocketDemoMain implements SwirldMain {
 			platform.getState().getAddressBookCopy().getAddress(selfId).getPortExternalIpv4() + 1000,
 			new String[] {"com.txmq.socketdemo.socket"}
 		);
+		*/
 	}
 
 	@Override
