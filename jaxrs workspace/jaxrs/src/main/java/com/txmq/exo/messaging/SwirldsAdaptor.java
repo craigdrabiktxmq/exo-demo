@@ -22,11 +22,13 @@ import java.security.cert.CertificateException;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.net.SocketFactory;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManagerFactory;
 
+import com.txmq.exo.config.ClientConfig;
 import com.txmq.exo.config.ExoConfig;
 import com.txmq.exo.messaging.routing.*;
 import com.txmq.socketdemo.SocketDemoTransactionTypes;
@@ -46,15 +48,36 @@ public class SwirldsAdaptor {
 			SwirldsAdaptor.nodeRouter.setAvailableNodes(ExoConfig.getConfig().clientConfig.getKnownSockets());
 		}
 		
+		if (ExoConfig.getConfig().clientConfig.encrypted == true) {
+			this.setupSecuredSocket();
+		} else {
+			this.setupUnsecuredSocket();
+		}
+			
+	}
+	
+	private void setupUnsecuredSocket() {
+		InetSocketAddress destination = (InetSocketAddress) SwirldsAdaptor.nodeRouter.getNode();
+		try {
+			this.socket = new Socket(destination.getHostName(), destination.getPort());
+		} catch (IOException e) {
+			e.printStackTrace();
+			throw new IllegalStateException("An error occurred while configuring an unsecured socker: " + e.getMessage());
+		}
+	}
+	
+	private void setupSecuredSocket() {		
+		ClientConfig config = ExoConfig.getConfig().clientConfig;
+		
 		try {
 			SecureRandom secureRandom = new SecureRandom();
 			secureRandom.nextInt();
 			
 			KeyStore clientKeyStore = KeyStore.getInstance("JKS");
-			clientKeyStore.load(new FileInputStream("client.private"), "client".toCharArray());
+			clientKeyStore.load(new FileInputStream(config.clientKeystore.path), config.clientKeystore.password.toCharArray());
 			
 			KeyStore serverKeyStore = KeyStore.getInstance("JKS");
-			serverKeyStore.load(new FileInputStream("server.public"), "server".toCharArray());
+			serverKeyStore.load(new FileInputStream(config.serverKeystore.path), config.serverKeystore.password.toCharArray());
 			
 			TrustManagerFactory tmf = TrustManagerFactory.getInstance("SunX509");
 			tmf.init(serverKeyStore);
@@ -67,25 +90,17 @@ public class SwirldsAdaptor {
 			
 			SSLSocketFactory socketFactory = sslContext.getSocketFactory();
 			InetSocketAddress destination = (InetSocketAddress) SwirldsAdaptor.nodeRouter.getNode();
+
+			System.out.println("Attempting to create a connection to " + destination.getHostName() + ":" + destination.getPort());
 			this.socket = socketFactory.createSocket(destination.getHostName(), destination.getPort());  //new Socket(HOST, PORT);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
+		} catch (	IOException | 
+					KeyStoreException | 
+					NoSuchAlgorithmException | 
+					CertificateException | 
+					UnrecoverableKeyException | 
+					KeyManagementException e) {
 			e.printStackTrace();
-		} catch (KeyStoreException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (NoSuchAlgorithmException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (CertificateException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (UnrecoverableKeyException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (KeyManagementException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			throw new IllegalStateException("An error has occurred while configuring a secured socket:  " + e.getMessage());
 		}
 	}
 	

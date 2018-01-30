@@ -8,6 +8,15 @@
 		"socketMessaging": {
 			"port": -1,
 			"derivedPort": 1000,
+			"secured": true,
+			"clientKeystore": {
+				"path": "client.public",
+				"password": "client"
+			},
+			"serverKeystore": {
+				"path": "server.private",
+				"password": "server"
+			},
 			"handlers": [
 				"com.txmq.socketdemo.socket"
 			]

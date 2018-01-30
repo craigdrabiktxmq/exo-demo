@@ -1,5 +1,14 @@
 {
 	"clientConfig": {
+		"encrypted": "true",
+		"clientKeystore": {
+			"path": "client.private",
+			"password": "client"
+		},
+		"serverKeystore": {
+			"path": "server.public",
+			"password": "server"
+		},
 		"knownSockets": [
 			{
 				"hostname": "localhost",

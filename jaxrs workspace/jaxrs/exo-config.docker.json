@@ -1,5 +1,6 @@
 {
 	"clientConfig": {
+		"encrypted": "false",
 		"knownSockets": [
 			{
 				"hostname": "hashgraph",

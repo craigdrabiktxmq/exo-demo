@@ -23,7 +23,6 @@ import com.txmq.exo.persistence.IBlockLogger;
  * file based scheme for setting CouchDB logger parameters.
  */
 public class CouchDBBlockLogger implements IBlockLogger {
-	//TODO:  Make this configurable
 	private int BLOCK_SIZE = 4;
 	private Block block;
 	private CouchDbClient client;
