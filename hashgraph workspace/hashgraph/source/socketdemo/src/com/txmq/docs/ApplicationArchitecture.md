@@ -25,3 +25,6 @@ See [Exo Messaging](Messaging.md) and [Exo Transaction Routing](TransactionRouti
 Exo provides a logging framework for writing transactions out to a persistent history.  The logger writes transactions to a blockchain data structure.  It uses a plug-in architecture to enable developers to add plug-ins for their choice of data storage.  Exo provides a plug-in for CouchDB (more adaptors coming soon).
 
 See [Transaction Logging](TransactionLogging.md) to learn how to set up logging. 
+
+## JSON Configuration
+Exo can be configured using a JSON-formatted configuration file.  See [Configuration using exo-config.json](JSONConfig.md) to learn how to configure Exo using a configuration file.
