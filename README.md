@@ -5,7 +5,8 @@ This project contains a demonstration of a web application communicating with a 
 - Through a JAX-RS based REST API.  The JAX-RS application communicates with the Swirld via a TLS-secured, authenticated socket.  
 - Directly to the Swirld via a REST API embedded in the Swirld itself.
 
-NOTE:  THIS DOCUMENT IS OUT OF DATE...  AN UPDATE IS COMING SOON.
+NOTE:  THIS BRANCH IS BUILT ON SWIRLDS SDK VERSION 17.09.15.  THIS BRANCH IS NO LONGER MAINTAINED.  PLEASE UPDATE YOUR APPLICATION TO WORK WITH THE LATEST SDK VERSION TO USE THE MAIN (MAINTAINED) BRANCH.
+NOTE:  THIS DOCUMENT IS OUT OF DATE...  AN UPDATE IS COMING SOON.  Please see [https://github.com/craigdrabiktxmq/exo] for updated framework documentation.
 
 Running the Application
 -----------------------
