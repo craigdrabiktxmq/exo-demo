@@ -220,8 +220,7 @@ public class ExoPlatformLocator {
 				new ExoMessage(
 					new ExoTransactionType(ExoTransactionType.ANNOUNCE_NODE),
 					baseUri.toString()
-				).serialize(),
-				null
+				).serialize()
 			);
 					
 		} catch (IOException e1) {
