@@ -38,7 +38,7 @@ public class ZooRestApi {
 		ExoMessage message = new ExoMessage(new SocketDemoTransactionTypes(SocketDemoTransactionTypes.ADD_ANIMAL), animal);
 		
 		try {
-			ExoPlatformLocator.getPlatform().createTransaction(message.serialize(), null);
+			ExoPlatformLocator.getPlatform().createTransaction(message.serialize());
 		} catch (IllegalStateException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
