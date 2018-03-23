@@ -15,4 +15,5 @@ EXPOSE 51200-51299
 EXPOSE 50200-50299
 EXPOSE 52200-52299
 WORKDIR /opt/maven
-ENTRYPOINT ["java", "-jar", "swirlds.jar"]
+#ENTRYPOINT ["java", "-jar", "swirlds.jar"]
+ENTRYPOINT ["java", "-jar", "data/apps/SocketDemo.jar"]
