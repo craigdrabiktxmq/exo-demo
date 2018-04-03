@@ -23,18 +23,6 @@ public class ExoTransactionType implements Serializable {
 	public static final String ANNOUNCE_NODE = "ANNOUNCE_NODE";
 	
 	/**
-	 * Instructs the application to recover its state by re-applying 
-	 * transactions from the block logger database.
-	 */
-	public static final String RECOVER_STATE = "RECOVER_STATE";
-	
-	/**
-	 * Instructs the Hashgraph to shut down in a graceful way, ensuring 
-	 * blocks are logged to the chain DB before shutting down.
-	 */
-	public static final String SHUTDOWN = "SHUTDOWN";
-	
-	/**
 	 * The list of transaction type identifers supported by the application.  
 	 * Think of this list as  list of nn enumerated type's values
 	 */
@@ -61,8 +49,6 @@ public class ExoTransactionType implements Serializable {
 		ExoTransactionType.transactionTypes = new ArrayList<String>();
 		ExoTransactionType.transactionTypes.add(ACKNOWLEDGE);
 		ExoTransactionType.transactionTypes.add(ANNOUNCE_NODE);
-		ExoTransactionType.transactionTypes.add(RECOVER_STATE);
-		ExoTransactionType.transactionTypes.add(SHUTDOWN);
 		
 		for (String transactionType : transactionTypes) {
 			ExoTransactionType.transactionTypes.add(transactionType);
