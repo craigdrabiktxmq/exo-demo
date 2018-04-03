@@ -16,7 +16,6 @@ import org.glassfish.jersey.jackson.JacksonFeature;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.glassfish.jersey.server.ResourceConfig;
 
-import com.intiva.intivahealth.IntivaHealthTransactionTypes;
 import com.swirlds.platform.Platform;
 import com.swirlds.platform.SwirldState;
 import com.txmq.exo.config.ExoConfig;
@@ -362,7 +361,7 @@ public class ExoPlatformLocator {
 	 */
 	public static boolean createTransaction(byte[] transaction, long[] hintIds) {
 		if (testState == null) {
-			return platform.createTransaction(transaction, null);
+			return platform.createTransaction(transaction);
 		} else {
 			long transactionID = new Random().nextLong();
 			Instant timeCreated = Instant.now();
