@@ -26,7 +26,7 @@ If you change to "Use JAX-RS REST API" using the radio buttons at the top of the
 How the JAX-RS/Hashgraph Integration Works
 ------------------------------------------
 
-Walking through the Swirld itself is outside the scope of what I'm trying to ddemonstrate, so if you're not familiar with how a Swirld works, please head over to swirlds.com and download the SDK and read the docs.
+Walking through the Swirld itself is outside the scope of what I'm trying to demonstrate, so if you're not familiar with how a Swirld works, please head over to swirlds.com and download the SDK and read the docs.
 
 In either Java project, the communications code is centralized in the com.txmq.swirldsframework.messaging package.   This code should be reusable between applications.  Right now, the hostname of the Swirld is hard-coded to the name of the Docker container it runs in.  A better approach would be to pull this from a configuration file, parameter, JNDI, etc. but be aware if you reuse this code or try to run outside of Docker, you'll need to update the hostname in SwirldsAdaptor in your client (web API) project.
 
