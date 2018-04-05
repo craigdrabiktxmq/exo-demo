@@ -89,6 +89,26 @@ You can configure Exo's socket messaging feature by defining the port or derived
 In this example, we've asked Exo to calculate the port it should listen on based on the port the hashgraph node listens on.  This is typical for applications that run on the alpha SDK where the Swirlds browser starts up multiple nodes on the same host.  The above definition will add 1000 to the hashgraph's port to determine which port to listen on.  You can also define a fixed port by setting a value other than -1 in the port property.  If the port is set, then derivedPort willb e ignored.
 If no socketMessaging object is defined, Exo will not create a transaction server instance to listen for socket requests.
 
+The example above sets up an unsecured socket - there is no encyption in transait, nor are clients authenticated.  This configuration should knly be used for playing with the framework or while troubleshooting.  To set up a TLS-secured socket authenticated using X.509 certificates, we can pass in the locations and passwords for the keystores containing client and server side keys, and Exo will configure a secured socket:
+```json
+"socketMessaging": {
+    "port": -1,
+    "derivedPort": 1000,
+    "secured": true,
+    "clientKeystore": {
+        "path": "client.public",
+        "password": "client"
+    },
+    "serverKeystore": {
+        "path": "server.private",
+        "password": "server"
+    },
+    "handlers": [
+        "com.txmq.socketdemo.socket"
+    ]
+}
+```
+
 ## Configuring REST Endpoints
 REST endpoints are configured using the same configuration object format as socket messaging.  Set the port or derivedPort to accept requests on, and a list of packages that contain JAX-RS-annotated request handlers:
 ```json

@@ -86,6 +86,7 @@
             <configuration>
               <sources>
                 <source>src/gen/java</source>
+                <source>exo-java-client</source>
               </sources>
             </configuration>
           </execution>
