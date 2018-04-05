@@ -46,6 +46,21 @@ ExoPlatformLocator.initSocketMessaging(
 );
 ```
 
+Note that the method above creates an unsecured socket for messaging.  This configuration should not be used in a production setting.  Exo can configure a TLS-encrypted socket authenticated using X.509 certificates:
+
+```java
+ExoPlatformLocator.initSecuredSocketMessaging(
+    platform.getState().getAddressBookCopy().getAddress(selfId).getPortExternalIpv4() + 1000,
+    new String[] {"com.txmq.socketdemo.socket"},
+    "client.public",
+    "clientKeystorePassword"
+    "server.private",
+    "serverKeystorePassword"
+);
+```
+
+Please review the [Exo Java Client](https://github.com/craigdrabiktxmq/exo-java-client/blob/master/README.md) documentation for more information on how to configure keystores for secured socket configuration.
+
 ## Exo Java Client
 The functionality in Exo covers the Hashgraph side of of the socket connection.  The [Exo Java Client](https://github.com/craigdrabiktxmq/exo-java-client) impolements the client application side of the socket connection.
 

@@ -12,7 +12,6 @@ import com.swirlds.platform.Platform;
 import com.swirlds.platform.SwirldState;
 import com.txmq.exo.messaging.ExoMessage;
 import com.txmq.exo.persistence.BlockLogger;
-import com.txmq.socketdemo.SocketDemoState;
 
 /**
  * ExoState is a base class for developers to extend when implementing Swirlds states.
@@ -60,8 +59,10 @@ public class ExoState {
 	 */
 	public synchronized void copyFrom(SwirldState old) {
 		endpoints = Collections.synchronizedList(new ArrayList<String>(((ExoState) old).endpoints));
-		addressBook = ((SocketDemoState) old).addressBook.copy();
-		myName = ((SocketDemoState) old).myName;
+		if (addressBook != null) {
+			addressBook = ((ExoState) old).addressBook.copy();
+		}
+		myName = ((ExoState) old).myName;
 	}
 	
 	/**

@@ -47,7 +47,7 @@ public class SocketDemoMain implements SwirldMain {
 	/** the platform running this app */
 	public Platform platform;
 	/** ID number for this member */
-	public int selfId;
+	public long selfId;
 	/** a console window for text output */
 	public Console console;
 	/** sleep this many milliseconds after each sync */
@@ -72,7 +72,7 @@ public class SocketDemoMain implements SwirldMain {
 	}
 
 	@Override
-	public void init(Platform platform, int id) {
+	public void init(Platform platform, long id) {
 		this.platform = platform;
 		this.selfId = id;
 		//this.console = platform.createConsole(true); // create the window, make it visible
