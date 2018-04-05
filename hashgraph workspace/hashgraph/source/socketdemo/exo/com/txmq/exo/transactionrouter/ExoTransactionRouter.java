@@ -12,6 +12,8 @@ import org.reflections.util.ClasspathHelper;
 import org.reflections.util.ConfigurationBuilder;
 
 import com.txmq.exo.messaging.ExoMessage;
+import com.txmq.exo.messaging.ExoTransactionType;
+import com.txmq.exo.core.ExoPlatformLocator;
 import com.txmq.exo.core.ExoState;
 
 /**
@@ -107,21 +109,25 @@ public class ExoTransactionRouter {
 	 * what it needs, it invokes the method passing in the message and state.
 	 */
 	public Object routeTransaction(ExoMessage message, ExoState state) throws ReflectiveOperationException { 
-		if (this.transactionMap.containsKey(message.transactionType.getValue())) {
-			Method method = this.transactionMap.get(message.transactionType.getValue());
-			Class<?> processorClass = method.getDeclaringClass();			
-			if (!this.transactionProcessors.containsKey(processorClass)) {
-				Constructor<?> processorConstructor = processorClass.getConstructor();
-				this.transactionProcessors.put(processorClass, processorConstructor.newInstance());				
+		if (!ExoPlatformLocator.shouldShutdown() || message.transactionType.getValue().equals(ExoTransactionType.SHUTDOWN)) {
+			if (this.transactionMap.containsKey(message.transactionType.getValue())) {
+				Method method = this.transactionMap.get(message.transactionType.getValue());
+				Class<?> processorClass = method.getDeclaringClass();			
+				if (!this.transactionProcessors.containsKey(processorClass)) {
+					Constructor<?> processorConstructor = processorClass.getConstructor();
+					this.transactionProcessors.put(processorClass, processorConstructor.newInstance());				
+				}
+				
+				Object transactionProcessor = this.transactionProcessors.get(processorClass);
+				return method.invoke(transactionProcessor, message, state );
+			} else {
+				throw new IllegalArgumentException(
+						"A handler for transaction type " + message.transactionType.getValue() + 
+						" was not registered with the transaction router"
+				);
 			}
-			
-			Object transactionProcessor = this.transactionProcessors.get(processorClass);
-			return method.invoke(transactionProcessor, message, state );
 		} else {
-			throw new IllegalArgumentException(
-					"A handler for transaction type " + message.transactionType.getValue() + 
-					" was not registered with the transaction router"
-			);
+			return null;
 		}
 	}
 }
