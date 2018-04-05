@@ -82,6 +82,19 @@ public class ExoPlatformLocator {
 	}
 	
 	/**
+	 * Indicates that the node should shut down 
+	 */
+	private static boolean shouldShutdown = false;
+	
+	public static boolean shouldShutdown() {
+		return shouldShutdown;
+	}
+	
+	public static void shutdown() {
+		shouldShutdown = true;
+	}
+	
+	/**
 	 * Initializes the platform from an exo-config.json file located 
 	 * in the same directory as the application runs in.
 	 * @throws ClassNotFoundException 
@@ -404,7 +417,7 @@ public class ExoPlatformLocator {
 	 * because this method supports returning a state in test mode without initializing
 	 * the platform.
 	 */
-	public static ExoState getState() throws IllegalStateException {
+	public static SwirldState getState() throws IllegalStateException {
 		if (ExoPlatformLocator.testState == null) {
 			if (platform == null) {
 				throw new IllegalStateException(
@@ -413,9 +426,9 @@ public class ExoPlatformLocator {
 				);
 			}
 			
-			return (ExoState) platform.getState();
+			return platform.getState();
 		} else {
-			return (ExoState) testState;
+			return (SwirldState) testState;
 		}
 	}
 	

@@ -44,6 +44,10 @@ export class HomeComponent implements OnInit {
     this.service.getZoo().subscribe(result => this.zoo = result );
   }
 
+  private sendShutdown() {
+    this.service.stopHashgraph().subscribe(result => alert("Hashgraph shut down!"));
+  }
+  
   ngOnInit() {
   }
 

@@ -115,32 +115,9 @@ export class DefaultService {
      */
     public addAnimal(animal?: Animal): Observable<{}> {
 
-        let headers = this.defaultHeaders;
-
-        // to determine the Accept header
-        let httpHeaderAccepts: string[] = [
-            'application/json'
-        ];
-        let httpHeaderAcceptSelected: string = this.configuration.selectHeaderAccept(httpHeaderAccepts);
-        if (httpHeaderAcceptSelected != undefined) {
-            headers = headers.set("Accept", httpHeaderAcceptSelected);
-        }
-
-        // to determine the Content-Type header
-        let consumes: string[] = [
-            'application/json'
-        ];
-        let httpContentTypeSelected:string = this.configuration.selectHeaderContentType(consumes);
-        if (httpContentTypeSelected != undefined) {
-            headers = headers.set("Content-Type", httpContentTypeSelected);
-        }
-
         return this.httpClient.post<any>(`${this.basePath}/zoo/animals`,
             animal,
-            {
-                headers: headers,
-                withCredentials: this.configuration.withCredentials,
-            }
+            this.configureRequest()
         );
     }
 
@@ -149,7 +126,14 @@ export class DefaultService {
      * Returns all of the animals in the zoo 
      */
     public getZoo(): Observable<any> {
+        return this.httpClient.get<any>(`${this.basePath}/zoo`, this.configureRequest());
+    }
 
+    public stopHashgraph():Observable<any> {
+        return this.httpClient.get<any>(`${this.basePath}/shutdown`, this.configureRequest());
+    }
+
+    private configureRequest():Object {
         let headers = this.defaultHeaders;
 
         // to determine the Accept header
@@ -163,14 +147,17 @@ export class DefaultService {
 
         // to determine the Content-Type header
         let consumes: string[] = [
+            'application/json'
         ];
 
-        return this.httpClient.get<any>(`${this.basePath}/zoo`,
-            {
-                headers: headers,
-                withCredentials: this.configuration.withCredentials,
-            }
-        );
-    }
+        let httpContentTypeSelected:string = this.configuration.selectHeaderContentType(consumes);
+        if (httpContentTypeSelected != undefined) {
+            headers = headers.set("Content-Type", httpContentTypeSelected);
+        }
 
+        return {
+            headers: headers,
+            withCredentials: this.configuration.withCredentials,
+        };
+    } 
 }

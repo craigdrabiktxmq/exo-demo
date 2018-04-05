@@ -3,7 +3,8 @@
 		"transactionTypesClassName": "com.txmq.socketdemo.SocketDemoTransactionTypes",
 		"transactionProcessors": [
 			"com.txmq.exo.messaging.rest",
-			"com.txmq.socketdemo.transactions"
+			"com.txmq.socketdemo.transactions",
+			"com.txmq.exo.persistence.transactions"
 		],
 		"socketMessaging": {
 			"port": -1,

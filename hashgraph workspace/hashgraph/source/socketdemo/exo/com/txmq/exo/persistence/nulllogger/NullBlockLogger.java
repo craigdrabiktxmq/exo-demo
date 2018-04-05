@@ -29,4 +29,8 @@ public class NullBlockLogger implements IBlockLogger {
 		return;
 	}
 
+	@Override
+	public void flush() {
+		return;
+	}
 }

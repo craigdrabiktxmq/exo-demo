@@ -36,6 +36,10 @@ public class ExoState {
 	 */
 	protected String myName;
 	
+	public String getMyName() {
+		return this.myName;
+	}
+	
 	/**
 	 * List of endpoints reported through the Endpoints API
 	 */

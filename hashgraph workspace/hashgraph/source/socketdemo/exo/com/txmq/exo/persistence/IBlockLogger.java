@@ -27,4 +27,9 @@ public interface IBlockLogger {
      * @param parameters
      */
     public void configure(DefaultKeyValue<String, String>[] parameters);
+    
+    /**
+     * Used to flush to database/disk before shutting down the hashgraph
+     */
+    public void flush();
 }

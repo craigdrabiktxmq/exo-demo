@@ -112,13 +112,15 @@ public class SocketDemoMain implements SwirldMain {
 
 	@Override
 	public void run() {
-		
-		while (true) {
+		/*
+		while (!ExoPlatformLocator.shouldShutdown()) {
 			try {
 				Thread.sleep(sleepPeriod);
 			} catch (Exception e) {
 			}
 		}
+		System.out.println("Received shutdown signal through Exo, shutting down..");
+		*/
 	}
 
 	@Override
