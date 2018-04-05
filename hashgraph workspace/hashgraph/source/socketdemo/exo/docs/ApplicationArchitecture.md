@@ -28,3 +28,6 @@ See [Transaction Logging](TransactionLogging.md) to learn how to set up logging.
 
 ## JSON Configuration
 Exo can be configured using a JSON-formatted configuration file.  See [Configuration using exo-config.json](JSONConfig.md) to learn how to configure Exo using a configuration file.
+
+## Test Mode
+Exo supports a test mode for use with JUnit tests that test application logic.  In a typical application, there will be dependencies between components that live in the state.  When in test mode, Exo will run without dependencies on block logging or the Swirlds Platform class.  It maintains a dummy state, and transactions submitted through PlatformLocator.createTransaction() will be processed by the dummy state.

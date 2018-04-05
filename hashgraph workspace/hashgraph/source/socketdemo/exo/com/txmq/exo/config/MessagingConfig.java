@@ -6,5 +6,7 @@ public class MessagingConfig {
 	public boolean secured;
 	public String[] handlers;
 	public KeystoreConfig clientKeystore;
+	public KeystoreConfig clientTruststore;
 	public KeystoreConfig serverKeystore;
+	public KeystoreConfig serverTruststore;
 }

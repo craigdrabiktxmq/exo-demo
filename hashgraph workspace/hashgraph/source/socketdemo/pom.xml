@@ -37,12 +37,16 @@
   		<groupId>org.glassfish.jersey.containers</groupId>
   		<artifactId>jersey-container-grizzly2-http</artifactId>
   	</dependency>
-  	<!--
+  	  	<dependency>
+	     <groupId>org.glassfish.grizzly</groupId>
+	     <artifactId>grizzly-http-server-multipart</artifactId>
+	     <version>2.4.0</version>
+	</dependency>
   	<dependency>
 	    <groupId>org.glassfish.jersey.media</groupId>
-    		<artifactId>jersey-media-moxy</artifactId>
+	    <artifactId>jersey-media-multipart</artifactId>
+	    <version>2.26</version>        
 	</dependency>
-	-->
 	<dependency>
   		<groupId>org.glassfish.jersey.media</groupId>
   		<artifactId>jersey-media-json-jackson</artifactId>
@@ -60,6 +64,23 @@
   </dependencies>
   <build>
   	<plugins>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>build-helper-maven-plugin</artifactId>
+				<executions>
+						<execution>
+								<phase>generate-sources</phase>
+								<goals>
+										<goal>add-source</goal>
+								</goals>
+								<configuration>
+										<sources>
+												<source>exo</source>
+										</sources>
+								</configuration>
+						</execution>
+				</executions>
+			</plugin>
   		<plugin>
 		  <groupId>org.apache.maven.plugins</groupId>
 		  <artifactId>maven-shade-plugin</artifactId>
