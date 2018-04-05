@@ -6,8 +6,8 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import com.intiva.intivahealth.IntivaHealthState;
 import com.txmq.exo.core.ExoPlatformLocator;
-import com.txmq.exo.core.ExoState;
 
 /**
  * This class implements a REST endpoint for retrieving a list of endpoints that the Swirld
@@ -20,7 +20,7 @@ public class EndpointsApi {
 	@Path("/endpoints")
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response getEndpoints() {
-		ExoState state = (ExoState) ExoPlatformLocator.getState();
+		IntivaHealthState state = (IntivaHealthState) ExoPlatformLocator.getState();
 		return Response.ok().entity(state.getEndpoints()).build();
 	}
 	

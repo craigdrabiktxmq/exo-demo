@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import com.intiva.intivahealth.IntivaHealthState;
 import com.swirlds.platform.Address;
 import com.swirlds.platform.AddressBook;
 import com.swirlds.platform.Platform;

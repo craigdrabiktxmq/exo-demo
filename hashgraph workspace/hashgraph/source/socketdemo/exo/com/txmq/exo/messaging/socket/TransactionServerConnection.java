@@ -62,7 +62,7 @@ public class TransactionServerConnection extends Thread {
 						//We shouldn't receive this from the client.  If we do, just send it back
 						response.transactionType.setValue(SocketDemoTransactionTypes.ACKNOWLEDGE);
 					} else {	
-						this.platform.createTransaction(message.serialize());
+						this.platform.createTransaction(message.serialize(), null);
 						response.transactionType.setValue(ExoTransactionType.ACKNOWLEDGE);
 					}
 				} catch (ReflectiveOperationException e) {
