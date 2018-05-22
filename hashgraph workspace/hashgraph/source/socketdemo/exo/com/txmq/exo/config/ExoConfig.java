@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.util.LinkedHashMap;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sun.javafx.collections.MappingChange.Map;
 
 public class ExoConfig {
 	private static ExoConfig configuration;
