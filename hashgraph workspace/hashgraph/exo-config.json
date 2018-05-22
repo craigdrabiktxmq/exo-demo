@@ -9,7 +9,7 @@
 		"socketMessaging": {
 			"port": -1,
 			"derivedPort": 1000,
-			"secured": true,
+			"secured": false,
 			"clientKeystore": {
 				"path": "client.public",
 				"password": "client"

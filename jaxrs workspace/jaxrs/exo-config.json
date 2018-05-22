@@ -1,6 +1,6 @@
 {
 	"clientConfig": {
-		"encrypted": "true",
+		"encrypted": "false",
 		"clientKeystore": {
 			"path": "client.private",
 			"password": "client"

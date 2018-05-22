@@ -10,7 +10,7 @@ import io.swagger.model.Animal;
 public class ZooTransactions {
 
 	@ExoTransaction(SocketDemoTransactionTypes.ADD_ANIMAL)
-	public void addAnimal(ExoMessage message, SocketDemoState state) {
+	public void addAnimal(ExoMessage message, SocketDemoState state, boolean consensus) {
 		Animal animal = (Animal) message.payload;
 		switch (animal.getSpecies()) {
 			case "lion":

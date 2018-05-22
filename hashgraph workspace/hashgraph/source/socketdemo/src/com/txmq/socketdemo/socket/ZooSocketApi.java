@@ -13,7 +13,7 @@ import io.swagger.model.Zoo;
 public class ZooSocketApi {
 
 	@ExoTransaction(SocketDemoTransactionTypes.GET_ZOO)
-	public ExoMessage getZoo(ExoMessage message, ExoState state) {
+	public ExoMessage getZoo(ExoMessage message, ExoState state, boolean consensus) {
 		SocketDemoState _state = (SocketDemoState) ExoPlatformLocator.getState();
 		Zoo result = new Zoo();
 		result.lions(_state.getLions());
