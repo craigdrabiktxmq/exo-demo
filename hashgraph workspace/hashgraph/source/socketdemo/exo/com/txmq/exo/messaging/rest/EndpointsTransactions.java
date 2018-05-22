@@ -10,7 +10,7 @@ import com.txmq.exo.core.ExoState;
  */
 public class EndpointsTransactions {
 	@ExoTransaction(ExoTransactionType.ANNOUNCE_NODE)
-	public void announceNode(ExoMessage message, ExoState state) { //TODO:  Refactor state so that Exo stuff is inheirited
+	public void announceNode(ExoMessage message, ExoState state, boolean consensus) {
 		state.addEndpoint((String) message.payload);
 	}
 }

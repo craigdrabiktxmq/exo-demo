@@ -1,20 +1,16 @@
 package com.txmq.exo.messaging.socket;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
-import java.io.ObjectOutput;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 
 import com.swirlds.platform.Platform;
 import com.txmq.exo.messaging.ExoTransactionType;
 import com.txmq.exo.transactionrouter.ExoTransactionRouter;
+import com.txmq.exo.core.ExoPlatformLocator;
+import com.txmq.exo.core.ExoState;
 import com.txmq.exo.messaging.ExoMessage;
-import com.txmq.socketdemo.SocketDemoState;
-import com.txmq.socketdemo.SocketDemoTransactionTypes;
-
-import io.swagger.model.Zoo;
 
 /**
  * TransactionServerConnection represents the server-side of an established connection.
@@ -46,10 +42,10 @@ public class TransactionServerConnection extends Thread {
 				//Read the message object and try to cast it to ExoMessage
 				Object tmp = reader.readObject();
 				message = (ExoMessage) tmp; 
-				SocketDemoState state = (SocketDemoState) this.platform.getState();
+				ExoState state = (ExoState) this.platform.getState();
 				
 				try {
-					response = (ExoMessage) this.transactionRouter.routeTransaction(message, state);
+					response = (ExoMessage) this.transactionRouter.routeTransaction(message, state, false);
 				} catch (IllegalArgumentException e) {
 					/*
 					 * This exception is thrown by transactionRouter when it can't figure 
@@ -58,11 +54,11 @@ public class TransactionServerConnection extends Thread {
 					 * simply pass through to the platform for processing by the Hashgraph,
 					 * unless it's an ACKNOWLEDGE transaction.
 					 */
-					if (message.transactionType.getValue() == SocketDemoTransactionTypes.ACKNOWLEDGE) {
+					if (message.transactionType.getValue() == ExoTransactionType.ACKNOWLEDGE) {
 						//We shouldn't receive this from the client.  If we do, just send it back
-						response.transactionType.setValue(SocketDemoTransactionTypes.ACKNOWLEDGE);
+						response.transactionType.setValue(ExoTransactionType.ACKNOWLEDGE);
 					} else {	
-						this.platform.createTransaction(message.serialize());
+						ExoPlatformLocator.createTransaction(message);
 						response.transactionType.setValue(ExoTransactionType.ACKNOWLEDGE);
 					}
 				} catch (ReflectiveOperationException e) {

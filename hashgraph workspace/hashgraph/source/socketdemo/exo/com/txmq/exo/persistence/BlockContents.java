@@ -19,6 +19,11 @@ import com.txmq.exo.messaging.ExoMessage;
 class BlockContents implements Serializable {
 
 	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -3111636814943472713L;
+	
+	/**
 	 * Hash of the previous block.  Blockchains ensure the integrity of the chain by 
 	 * including the previous block's hash, and including that value in its own hash.
 	 */
