@@ -11,7 +11,6 @@ import com.swirlds.platform.AddressBook;
 import com.swirlds.platform.Platform;
 import com.swirlds.platform.SwirldState;
 import com.txmq.exo.messaging.ExoMessage;
-import com.txmq.exo.persistence.BlockLogger;
 
 /**
  * ExoState is a base class for developers to extend when implementing Swirlds states.
@@ -90,7 +89,7 @@ public class ExoState {
 			if (consensus) {
 				ExoPlatformLocator.getBlockLogger().addTransaction(message, this.myName);
 			}
-			ExoPlatformLocator.getTransactionRouter().routeTransaction(message, this);				
+			ExoPlatformLocator.getTransactionRouter().routeTransaction(message, this, consensus);				
 		} catch (ClassNotFoundException e) {
 			e.printStackTrace();
 		} catch (IOException e) {

@@ -19,7 +19,6 @@ import javax.net.ssl.SSLServerSocketFactory;
 import javax.net.ssl.TrustManagerFactory;
 
 import com.swirlds.platform.Platform;
-import com.txmq.exo.transactionrouter.ExoTransaction;
 import com.txmq.exo.transactionrouter.ExoTransactionRouter;
 
 /**

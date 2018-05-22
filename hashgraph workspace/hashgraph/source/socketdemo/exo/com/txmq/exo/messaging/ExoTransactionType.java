@@ -13,6 +13,11 @@ import java.util.List;
  */
 public class ExoTransactionType implements Serializable {
 	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -3490353271014257619L;
+
+	/**
 	 * Identifier for the framework's Acknowledge message
 	 */
 	public static final String ACKNOWLEDGE = "ACKNOWLEDGE";

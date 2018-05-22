@@ -2,6 +2,7 @@ package com.txmq.exo.config;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.LinkedHashMap;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -10,6 +11,7 @@ public class ExoConfig {
 	
 	public ClientConfig clientConfig;
 	public HashgraphConfig hashgraphConfig;
+	public LinkedHashMap<String, String> applicationConfig;
 	
 	public static void loadConfiguration(String path) {
 		ObjectMapper mapper = new ObjectMapper();

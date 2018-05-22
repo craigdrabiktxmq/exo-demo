@@ -23,6 +23,11 @@ import java.util.UUID;
 public class ExoMessage implements Serializable {
 
 	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -543276168606092941L;
+
+	/**
 	 * The type of transaction this represents
 	 */
 	public ExoTransactionType transactionType;

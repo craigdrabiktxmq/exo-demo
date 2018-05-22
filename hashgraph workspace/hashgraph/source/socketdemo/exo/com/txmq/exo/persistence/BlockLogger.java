@@ -58,7 +58,9 @@ public class BlockLogger {
 		getLogger(nodeName).addTransaction(transaction);
 	}
 	
-	public void flush(String nodeName) {
-		this.getLogger(nodeName).flush();
+	public void flushLoggers() {
+		for (String nodeName : this.loggers.keySet()) {
+			this.getLogger(nodeName).flush();
+		}
 	}
 }

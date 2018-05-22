@@ -8,12 +8,8 @@ import java.util.Set;
 
 import org.reflections.Reflections;
 import org.reflections.scanners.MethodAnnotationsScanner;
-import org.reflections.util.ClasspathHelper;
-import org.reflections.util.ConfigurationBuilder;
 
 import com.txmq.exo.messaging.ExoMessage;
-import com.txmq.exo.messaging.ExoTransactionType;
-import com.txmq.exo.core.ExoPlatformLocator;
 import com.txmq.exo.core.ExoState;
 
 /**
@@ -37,7 +33,7 @@ import com.txmq.exo.core.ExoState;
  * Methods that implement transactions must use the following signature:
  * 
  * @ExoTransaction("sometransaction")
- * public void myTransactionHandler(ExoMessage message, ExoState state)
+ * public void myTransactionHandler(ExoMessage message, ExoState state, boolean consensus)
  * 
  * TODO:  Add a means for transaction processors to return data which will
  * later be made available through an API to client applications.
@@ -108,26 +104,22 @@ public class ExoTransactionRouter {
 	 * It will create the instance if it needs to.  Assuming it finds/creates
 	 * what it needs, it invokes the method passing in the message and state.
 	 */
-	public Object routeTransaction(ExoMessage message, ExoState state) throws ReflectiveOperationException { 
-		if (!ExoPlatformLocator.shouldShutdown() || message.transactionType.getValue().equals(ExoTransactionType.SHUTDOWN)) {
-			if (this.transactionMap.containsKey(message.transactionType.getValue())) {
-				Method method = this.transactionMap.get(message.transactionType.getValue());
-				Class<?> processorClass = method.getDeclaringClass();			
-				if (!this.transactionProcessors.containsKey(processorClass)) {
-					Constructor<?> processorConstructor = processorClass.getConstructor();
-					this.transactionProcessors.put(processorClass, processorConstructor.newInstance());				
-				}
-				
-				Object transactionProcessor = this.transactionProcessors.get(processorClass);
-				return method.invoke(transactionProcessor, message, state );
-			} else {
-				throw new IllegalArgumentException(
-						"A handler for transaction type " + message.transactionType.getValue() + 
-						" was not registered with the transaction router"
-				);
+	public Object routeTransaction(ExoMessage message, ExoState state, boolean consensus) throws ReflectiveOperationException { 
+		if (this.transactionMap.containsKey(message.transactionType.getValue())) {
+			Method method = this.transactionMap.get(message.transactionType.getValue());
+			Class<?> processorClass = method.getDeclaringClass();			
+			if (!this.transactionProcessors.containsKey(processorClass)) {
+				Constructor<?> processorConstructor = processorClass.getConstructor();
+				this.transactionProcessors.put(processorClass, processorConstructor.newInstance());				
 			}
+			
+			Object transactionProcessor = this.transactionProcessors.get(processorClass);
+			return method.invoke(transactionProcessor, message, state, consensus);
 		} else {
-			return null;
+			throw new IllegalArgumentException(
+					"A handler for transaction type " + message.transactionType.getValue() + 
+					" was not registered with the transaction router"
+			);
 		}
 	}
 }

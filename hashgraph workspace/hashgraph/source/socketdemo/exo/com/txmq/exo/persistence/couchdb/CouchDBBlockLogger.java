@@ -1,12 +1,19 @@
 package com.txmq.exo.persistence.couchdb;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.core.Response;
 
 import org.apache.commons.collections4.keyvalue.DefaultKeyValue;
 import org.apache.commons.collections4.map.HashedMap;
 import org.lightcouch.CouchDbClient;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.txmq.exo.core.ExoPlatformLocator;
 import com.txmq.exo.messaging.ExoMessage;
 import com.txmq.exo.persistence.Block;
@@ -80,15 +87,63 @@ public class CouchDBBlockLogger implements IBlockLogger {
 	 * changing the structure of the block data.
 	 */
 	private synchronized void initialize() {
+		//Create the view we need to query for the block with the highest index value
+		String maxIndexView = 
+				"{\n" + 
+				"  \"_id\": \"_design/exoBlockLoggerViews\",\n" + 
+				"  \"views\": {\n" + 
+				"    \"maxBlockIndex\": {\n" + 
+				"      \"reduce\": \"function (keys, values, rereduce) {\\n    var max = -1;\\n    var hash;\\n    \\n    for (var i = 0;  i < values.length;  i++) {\\n      if (typeof values[i].index == 'number' && values[i].index > max) {\\n        max = values[i].index;\\n        hash = values[i].hash;\\n      }\\n    }\\n    return {index: max, hash: hash};\\n}\",\n" + 
+				"      \"map\": \"function (doc) {\\n  emit(doc.hash, {hash: doc.hash, index: doc.index});\\n}\"\n" + 
+				"    }\n" + 
+				"  },\n" + 
+				"  \"language\": \"javascript\"\n" + 
+				"}";
+				
+		Response createViewResponse = ClientBuilder.newClient()
+				.target(client.getDBUri() + "_design/exoBlockLoggerViews")
+				.request()
+				.put(Entity.json(maxIndexView));
+		
+		if (createViewResponse.getStatus() >= 400) {
+			System.out.println("Received " + createViewResponse.getStatus() + " when creating block logger views");
+		}
+		
+		//Prepare the new block..  Assume it's a genesis block
 		this.block = new Block();
-		//TODO:  Should be the string rep of the Swirld ID from the platform, 
-		//not the string "GENESIS_BLOCK"?  Maybe we add the Swirld ID to the
-		//initial chain transaction described above?
 		this.block.setPreviousBlockHash("GENESIS_BLOCK");
+		
+		//Query the most recent existing block.  
+		//If no block is found, mint a genesis block, otherwise build onto the existing chain.
+		Response response = ClientBuilder.newClient()
+				.target(client.getDBUri() + "_design/exoBlockLoggerViews/_view/maxBlockIndex?group_level=0&reduce=true")
+				.request()
+				.get();
+		
+		if (response.getStatus() != 200) {
+			System.out.println("Received " + response.getStatus() + " while querying for existing chain.");
+		} else {
+			try {
+				Map<String, Object> queryResult = new ObjectMapper().readValue(
+						(String) response.readEntity(String.class),
+						new TypeReference<Map<String, Object>>() {}
+				);
+				
+				@SuppressWarnings("unchecked")
+				List<Map<String, Map<String, Object>>> rows = (List<Map<String, Map<String, Object>>>) queryResult.get("rows");
+				if (rows.size() > 0) {
+					this.block.setPreviousBlockHash((String) rows.get(0).get("value").get("hash"));
+					this.block.setIndex(((int) rows.get(0).get("value").get("index")) + 1);
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		} 
+		
 	}
 		
 	/**
-	 * Adds a trasnaction to the block.  The logger tracks transactions that
+	 * Adds a transaction to the block.  The logger tracks transactions that
 	 * have been added to blocks to ensure that transactions are written 
 	 * only once.
 	 * 
@@ -119,14 +174,12 @@ public class CouchDBBlockLogger implements IBlockLogger {
 	 */
 	@Override
 	public synchronized void save(Block block) {
-		if (this.block.getBlockSize() > 0) {
-			Block blockToSave = this.block;
-			this.block = new Block();
-			this.block.setIndex(blockToSave.getIndex() + 1);
-			blockToSave.commit();
-			this.block.setPreviousBlockHash(blockToSave.getHash());
-			this.client.save(blockToSave);
-		}
+		Block blockToSave = this.block;
+		this.block = new Block();
+		this.block.setIndex(blockToSave.getIndex() + 1);
+		blockToSave.commit();
+		this.block.setPreviousBlockHash(blockToSave.getHash());
+		this.client.save(blockToSave);
 	}
 
 	/**
@@ -191,11 +244,13 @@ public class CouchDBBlockLogger implements IBlockLogger {
 		this.initialize();
 		
 	}
-
+	
 	/**
-	 * Flushes all queued blocks to the DB
+	 * Flushes the current in-memory block to the database.  Used to gracefully shut down the hashgraph
 	 */
 	public void flush() {
-		this.save(block);
+		if (this.block.getBlockSize() > 0) {
+			this.save(block);
+		}
 	}
 }
