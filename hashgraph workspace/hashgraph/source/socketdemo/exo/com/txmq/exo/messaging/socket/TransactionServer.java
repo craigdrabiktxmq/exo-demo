@@ -4,13 +4,8 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.security.KeyManagementException;
 import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
-import java.security.UnrecoverableKeyException;
-import java.security.cert.CertificateException;
 
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
@@ -19,7 +14,6 @@ import javax.net.ssl.SSLServerSocketFactory;
 import javax.net.ssl.TrustManagerFactory;
 
 import com.swirlds.platform.Platform;
-import com.txmq.exo.transactionrouter.ExoTransactionRouter;
 
 /**
  * TransactionServer is the "controller" for the socket-based Hashgraph integration 
@@ -41,7 +35,7 @@ public class TransactionServer extends Thread {
 	 */
 	private Platform platform;
 	private ServerSocket serverSocket;
-	private ExoTransactionRouter transactionRouter;
+	private ExoMessageRouter messageRouter;
 	
 	/**
 	 * Creates an unsecured socket connection listening on the supplied port.
@@ -101,22 +95,7 @@ public class TransactionServer extends Thread {
 			
 			System.out.println("Listening on port " + String.valueOf(port));
 					
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (KeyStoreException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (KeyManagementException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (NoSuchAlgorithmException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (UnrecoverableKeyException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (CertificateException e) {
+		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
@@ -133,9 +112,9 @@ public class TransactionServer extends Thread {
 		this.platform = platform;
 		
 		//Set up a transaction router for socket requests
-		this.transactionRouter = new ExoTransactionRouter();
+		this.messageRouter = new ExoMessageRouter();
 		for (String pkg : packages) {
-			this.transactionRouter.addPackage(pkg);
+			this.messageRouter.addPackage(pkg);
 		}
 	}
 
@@ -147,7 +126,7 @@ public class TransactionServer extends Thread {
 			while (true) {
 				try {
 					Socket socket = this.serverSocket.accept();
-					new TransactionServerConnection(socket, this.platform, this.transactionRouter).start();
+					new TransactionServerConnection(socket, this.platform, this.messageRouter).start();
 				} catch (IOException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();

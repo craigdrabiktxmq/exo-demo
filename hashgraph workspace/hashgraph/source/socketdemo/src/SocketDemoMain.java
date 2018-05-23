@@ -10,33 +10,13 @@
  * DISTRIBUTING THIS SOFTWARE OR ITS DERIVATIVES.
  */
 
-import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.nio.charset.StandardCharsets;
-
-import javax.ws.rs.core.UriBuilder;
-
 import com.swirlds.platform.Browser;
 import com.swirlds.platform.Console;
 import com.swirlds.platform.Platform;
 import com.swirlds.platform.SwirldMain;
 import com.swirlds.platform.SwirldState;
-import com.txmq.exo.config.ExoConfig;
 import com.txmq.exo.core.ExoPlatformLocator;
-import com.txmq.exo.messaging.ExoMessage;
-import com.txmq.exo.messaging.rest.CORSFilter;
-import com.txmq.exo.messaging.socket.TransactionServer;
-import com.txmq.exo.persistence.BlockLogger;
-import com.txmq.exo.persistence.couchdb.CouchDBBlockLogger;
-import com.txmq.exo.transactionrouter.ExoTransactionRouter;
 import com.txmq.socketdemo.SocketDemoState;
-import com.txmq.socketdemo.SocketDemoTransactionTypes;
-
-import org.glassfish.grizzly.http.server.HttpServer;
-import org.glassfish.jersey.grizzly2.httpserver.GrizzlyHttpServerFactory;
-import org.glassfish.jersey.jackson.JacksonFeature;
-import org.glassfish.jersey.server.ResourceConfig;
 
 /**
  * This HelloSwirld creates a single transaction, consisting of the string "Hello Swirld", and then goes

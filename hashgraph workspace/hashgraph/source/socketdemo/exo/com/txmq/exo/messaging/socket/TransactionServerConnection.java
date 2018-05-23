@@ -7,7 +7,6 @@ import java.net.Socket;
 
 import com.swirlds.platform.Platform;
 import com.txmq.exo.messaging.ExoTransactionType;
-import com.txmq.exo.transactionrouter.ExoTransactionRouter;
 import com.txmq.exo.core.ExoPlatformLocator;
 import com.txmq.exo.core.ExoState;
 import com.txmq.exo.messaging.ExoMessage;
@@ -20,12 +19,12 @@ public class TransactionServerConnection extends Thread {
 
 	private Socket socket;
 	private Platform platform;
-	private ExoTransactionRouter transactionRouter;
+	private ExoMessageRouter messageRouter;
 	
-	public TransactionServerConnection(Socket socket, Platform platform, ExoTransactionRouter transactionRouter) {
+	public TransactionServerConnection(Socket socket, Platform platform, ExoMessageRouter messageRouter) {
 		this.socket = socket;
 		this.platform = platform;
-		this.transactionRouter = transactionRouter;
+		this.messageRouter = messageRouter;
 	}
 	
 	/**
@@ -45,7 +44,7 @@ public class TransactionServerConnection extends Thread {
 				ExoState state = (ExoState) this.platform.getState();
 				
 				try {
-					response = (ExoMessage) this.transactionRouter.routeTransaction(message, state, false);
+					response = (ExoMessage) this.messageRouter.routeMessage(message, state);
 				} catch (IllegalArgumentException e) {
 					/*
 					 * This exception is thrown by transactionRouter when it can't figure 

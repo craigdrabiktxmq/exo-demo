@@ -3,19 +3,19 @@
 		"encrypted": "false",
 		"knownSockets": [
 			{
-				"hostname": "hashgraph",
+				"hostname": "10.100.20.62",
 				"port": 51204
 			},
 			{
-				"hostname": "hashgraph",
+				"hostname": "10.100.20.62",
 				"port": 51205
 			},
 			{
-				"hostname": "hashgraph",
+				"hostname": "10.100.20.62",
 				"port": 51206
 			},
 			{
-				"hostname": "hashgraph",
+				"hostname": "10.100.20.62",
 				"port": 51207
 			}		
 		]
