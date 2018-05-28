@@ -3,10 +3,10 @@ package com.txmq.socketdemo;
 import com.txmq.exo.messaging.ExoTransactionType;
 
 public class SocketDemoTransactionTypes extends ExoTransactionType {
-	public static final String GET_ZOO = "GET_ZOO";
-	public static final String ADD_ANIMAL = "ADD_ANIMAL";
+	public static final int GET_ZOO = 1;
+	public static final int ADD_ANIMAL = 2;
 	
-	private static final String[] values = {
+	private static final int[] values = {
 			GET_ZOO,
 			ADD_ANIMAL
 	};
@@ -18,7 +18,7 @@ public class SocketDemoTransactionTypes extends ExoTransactionType {
 		}
 	}
 	
-	public SocketDemoTransactionTypes(String transactionType) {
+	public SocketDemoTransactionTypes(int transactionType) {
 		super();
 		if (getInitialized() == false) {
 			initialize(values);

@@ -20,30 +20,30 @@ public class ExoTransactionType implements Serializable {
 	/**
 	 * Identifier for the framework's Acknowledge message
 	 */
-	public static final String ACKNOWLEDGE = "ACKNOWLEDGE";
+	public static final int ACKNOWLEDGE = -101;
 
 	/**
 	 * Identifier for the transaction nodes issue when they start up
 	 */
-	public static final String ANNOUNCE_NODE = "ANNOUNCE_NODE";
+	public static final int ANNOUNCE_NODE = -102;
 	
 	/**
 	 * Instructs the application to recover its state by re-applying 
 	 * transactions from the block logger database.
 	 */
-	public static final String RECOVER_STATE = "RECOVER_STATE";
+	public static final int RECOVER_STATE = - 103;
 	
 	/**
 	 * Instructs the Hashgraph to shut down in a graceful way, ensuring 
 	 * blocks are logged to the chain DB before shutting down.
 	 */
-	public static final String SHUTDOWN = "SHUTDOWN";
+	public static final int SHUTDOWN = -104;
 	
 	/**
 	 * The list of transaction type identifers supported by the application.  
 	 * Think of this list as  list of nn enumerated type's values
 	 */
-	private static List<String> transactionTypes;
+	private static List<Integer> transactionTypes;
 	
 	/**
 	 * Tracks whether this object has been initialized with its values list 
@@ -62,14 +62,14 @@ public class ExoTransactionType implements Serializable {
 	/**
 	 * Initializes ExoTransactionType with the list of valid enum values 
 	 */
-	protected static void initialize(String[] transactionTypes) {
-		ExoTransactionType.transactionTypes = new ArrayList<String>();
+	protected static void initialize(int[] transactionTypes) {
+		ExoTransactionType.transactionTypes = new ArrayList<Integer>();
 		ExoTransactionType.transactionTypes.add(ACKNOWLEDGE);
 		ExoTransactionType.transactionTypes.add(ANNOUNCE_NODE);
 		ExoTransactionType.transactionTypes.add(RECOVER_STATE);
 		ExoTransactionType.transactionTypes.add(SHUTDOWN);
 		
-		for (String transactionType : transactionTypes) {
+		for (int transactionType : transactionTypes) {
 			ExoTransactionType.transactionTypes.add(transactionType);
 		}
 	}
@@ -77,26 +77,26 @@ public class ExoTransactionType implements Serializable {
 	/**
 	 * Returns a clone of the list of transaction types that are supported
 	 */
-	public ArrayList<String> getTransactionTypes() {
+	public ArrayList<Integer> getTransactionTypes() {
 		return new ArrayList<>(ExoTransactionType.transactionTypes);
 	}
 	
 	/**
 	 * Value of this instance.
 	 */
-	private String value;
+	private int value;
 
 	/**
 	 * Accessor for returning the enum value of the transaction type
 	 */
-	public String getValue() {
+	public int getValue() {
 		return this.value;
 	}
 	
 	/**
 	 * Setter for setting the enum value of the transaction type
 	 */
-	public void setValue(String value) throws IllegalArgumentException {
+	public void setValue(int value) throws IllegalArgumentException {
 		if (ExoTransactionType.transactionTypes.contains(value)) {
 			this.value = value;
 		} else {
@@ -114,7 +114,7 @@ public class ExoTransactionType implements Serializable {
 	/**
 	 * Used to create a transaction type with a knopwn value
 	 */
-	public ExoTransactionType(String value) {
+	public ExoTransactionType(int value) {
 		this.setValue(value);
 	}
 	
@@ -122,6 +122,6 @@ public class ExoTransactionType implements Serializable {
 	 * Method for Java to use to see if two ExoTransactionType oinstances have the same value.
 	 */
 	public boolean equals(ExoTransactionType type) {
-		return this.value.equals(type.value);
+		return this.value == type.value;
 	}
 }

@@ -42,7 +42,7 @@ public abstract class ExoRouter<T extends Annotation> {
 	/**
 	 * Map of transaction type values to the methods that handle them.
 	 */
-	protected Map<String, Method> transactionMap;
+	protected Map<Integer, Method> transactionMap;
 
 	/**
 	 * Methods have to be invoked on an instance of an object (unless
@@ -68,7 +68,7 @@ public abstract class ExoRouter<T extends Annotation> {
 	 */
 	@SuppressWarnings("unchecked")
 	public ExoRouter() {
-		this.transactionMap = new HashMap<String, Method>();
+		this.transactionMap = new HashMap<Integer, Method>();
 		this.transactionProcessors = new HashMap<Class<?>, Object>(); 		
 		this.annotationType = ((Class<? extends Annotation>) ((ParameterizedType) getClass().getGenericSuperclass()).getActualTypeArguments()[0]);
 	}
@@ -88,7 +88,7 @@ public abstract class ExoRouter<T extends Annotation> {
 			Method valueMethod;
 			try {
 				valueMethod = this.annotationType.getMethod("value", (Class<?>[]) null);
-				this.transactionMap.put((String) valueMethod.invoke(methodAnnotation), method);
+				this.transactionMap.put((Integer) valueMethod.invoke(methodAnnotation), method);
 			} catch (Exception e) {
 				e.printStackTrace();
 				throw new IllegalArgumentException(
@@ -101,7 +101,7 @@ public abstract class ExoRouter<T extends Annotation> {
 		return this;
 	}
 	
-	protected Object invokeHandler(String key, Object... args) throws ReflectiveOperationException {
+	protected Object invokeHandler(int key, Object... args) throws ReflectiveOperationException {
 		if (this.transactionMap.containsKey(key)) {
 			Method method = this.transactionMap.get(key);
 			Class<?> processorClass = method.getDeclaringClass();			

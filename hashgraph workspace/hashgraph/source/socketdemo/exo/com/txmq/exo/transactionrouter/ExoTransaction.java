@@ -15,5 +15,5 @@ import java.lang.annotation.Target;
 @Target(ElementType.METHOD)
 public @interface ExoTransaction {
 	//Intended to be an enum value of an extension of ExoTransactionType
-	String value();
+	int value();
 }
