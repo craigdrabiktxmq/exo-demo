@@ -1,6 +1,7 @@
 package com.txmq.exo.core;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.net.URI;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -23,6 +24,7 @@ import com.swirlds.platform.Platform;
 import com.swirlds.platform.SwirldState;
 import com.txmq.exo.config.ExoConfig;
 import com.txmq.exo.config.MessagingConfig;
+import com.txmq.exo.messaging.ExoMessage;
 import com.txmq.exo.messaging.ExoMessage;
 import com.txmq.exo.messaging.ExoTransactionType;
 import com.txmq.exo.messaging.rest.CORSFilter;
@@ -359,7 +361,7 @@ public class ExoPlatformLocator {
 				
 			}
 			createTransaction(
-				new ExoMessage(
+				new ExoMessage<Serializable, Serializable>(
 					new ExoTransactionType(ExoTransactionType.ANNOUNCE_NODE),
 					externalUrl
 				)
@@ -421,7 +423,7 @@ public class ExoPlatformLocator {
 	 * 
 	 * This signature is a convenience method for passing ExoMessages.
 	 */
-	public static boolean createTransaction(ExoMessage transaction) throws IOException {
+	public static boolean createTransaction(ExoMessage<?, ?> transaction) throws IOException {
 		return createTransaction(transaction.serialize(), null);
 	}
 	

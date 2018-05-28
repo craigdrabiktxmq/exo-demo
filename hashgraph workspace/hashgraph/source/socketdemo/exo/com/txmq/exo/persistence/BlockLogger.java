@@ -48,7 +48,7 @@ public class BlockLogger {
 	 * has not been created for the node, then a null logger will be
 	 * automatically registered so execution can procees.
 	 */
-	public void addTransaction(ExoMessage transaction, String nodeName) {
+	public void addTransaction(ExoMessage<?, ?> transaction, String nodeName) {
 		//TODO:  Figure out a way to cut in notification that a transaction has reached consensus and has been processed by the hashgraph.
 		IBlockLogger logger = getLogger(nodeName);
 		if (logger == null) {

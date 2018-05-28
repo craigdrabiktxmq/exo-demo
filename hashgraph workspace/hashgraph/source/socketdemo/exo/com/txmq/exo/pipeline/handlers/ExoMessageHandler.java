@@ -1,5 +1,7 @@
 package com.txmq.exo.pipeline.handlers;
 
+import java.io.Serializable;
+
 import com.txmq.exo.core.ExoState;
 import com.txmq.exo.messaging.ExoMessage;
 
@@ -12,7 +14,7 @@ import com.txmq.exo.messaging.ExoMessage;
  * @author craigdrabik
  *
  */
-public interface ExoMessageHandler<T extends ExoMessage, U extends ExoState> {
+public interface ExoMessageHandler<T extends Serializable, U extends Serializable, V extends ExoState> {
 
 	/**
 	 * This method is invoked in response to (messageReceived) events.  Handlers for
@@ -22,6 +24,6 @@ public interface ExoMessageHandler<T extends ExoMessage, U extends ExoState> {
 	 * @param message
 	 * @param state
 	 */
-	public void onMessageReceived(T message, U state);
+	public void onMessageReceived(ExoMessage<T, U> message, V state);
 	
 }

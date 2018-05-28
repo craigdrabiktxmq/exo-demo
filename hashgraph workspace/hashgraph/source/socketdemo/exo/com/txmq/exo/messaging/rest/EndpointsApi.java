@@ -1,5 +1,7 @@
 package com.txmq.exo.messaging.rest;
 
+import java.io.Serializable;
+
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -30,7 +32,8 @@ public class EndpointsApi {
 	@Path("/shutdown")
 	public Response shutdown() {
 		
-		ExoMessage transaction = new ExoMessage(new ExoTransactionType(ExoTransactionType.SHUTDOWN));
+		ExoMessage<Serializable, Serializable> transaction = 
+				new ExoMessage<Serializable, Serializable>(new ExoTransactionType(ExoTransactionType.SHUTDOWN));
 		try {
 			ExoPlatformLocator.createTransaction(transaction);
 		} catch (Exception e) {

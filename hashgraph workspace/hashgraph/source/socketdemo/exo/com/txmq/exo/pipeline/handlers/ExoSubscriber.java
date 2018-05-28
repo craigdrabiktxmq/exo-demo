@@ -1,5 +1,7 @@
 package com.txmq.exo.pipeline.handlers;
 
+import java.io.Serializable;
+
 import com.txmq.exo.core.ExoState;
 import com.txmq.exo.messaging.ExoMessage;
 
@@ -9,10 +11,11 @@ import com.txmq.exo.messaging.ExoMessage;
  * 
  * @author craigdrabik
  *
- * @param <T>
- * @param <U>
+ * @param <T> the type of the input parameter carrier class.  Must implement Serializable.
+ * @param <U> the type of the output carrier class.  Must implement Serializable.
+ * @param <V> the type of the application's state (SwirldState subclass).
  */
-public interface ExoSubscriber<T extends ExoMessage, U extends ExoState> {
+public interface ExoSubscriber<T extends Serializable, U extends Serializable, V extends ExoState> {
 	
 	/**
 	 * Invoked in response to a transaction having been submitted to the 
@@ -21,7 +24,7 @@ public interface ExoSubscriber<T extends ExoMessage, U extends ExoState> {
 	 * @param message
 	 * @param state
 	 */
-	public void onSubmitted(T message, U state);
+	public void onSubmitted(ExoMessage<T, U> message, V state);
 	
 	/**
 	 * Invoked after pre-consensus transaction processing has occurred, 
@@ -31,7 +34,7 @@ public interface ExoSubscriber<T extends ExoMessage, U extends ExoState> {
 	 * @param message
 	 * @param state
 	 */
-	public void onPreConsensusResult(T message, U state);
+	public void onPreConsensusResult(ExoMessage<T, U> message, V state);
 	
 	/**
 	 * Invoked after consensus transaction processing has occurred, 
@@ -41,7 +44,7 @@ public interface ExoSubscriber<T extends ExoMessage, U extends ExoState> {
 	 * @param message
 	 * @param state
 	 */
-	public void onConsensusResult(T message, U state);
+	public void onConsensusResult(ExoMessage<T, U> message, V state);
 	
 	/**
 	 * Invoked when a transaction has completed its journey through the pipeline.
@@ -52,6 +55,6 @@ public interface ExoSubscriber<T extends ExoMessage, U extends ExoState> {
 	 * @param message
 	 * @param state
 	 */
-	public void onTransactionComplete(T message, U state);
+	public void onTransactionComplete(ExoMessage<T, U> message, V state);
 	
 }

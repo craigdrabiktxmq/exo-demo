@@ -15,7 +15,7 @@ import com.txmq.exo.persistence.IBlockLogger;
 public class NullBlockLogger implements IBlockLogger {
 
 	@Override
-	public void addTransaction(ExoMessage transaction) {
+	public void addTransaction(ExoMessage<?, ?> transaction) {
 		return;
 	}
 

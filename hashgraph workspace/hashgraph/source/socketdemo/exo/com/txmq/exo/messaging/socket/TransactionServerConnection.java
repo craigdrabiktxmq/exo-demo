@@ -3,12 +3,14 @@ package com.txmq.exo.messaging.socket;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.net.Socket;
 
 import com.swirlds.platform.Platform;
 import com.txmq.exo.messaging.ExoTransactionType;
 import com.txmq.exo.core.ExoPlatformLocator;
 import com.txmq.exo.core.ExoState;
+import com.txmq.exo.messaging.ExoMessage;
 import com.txmq.exo.messaging.ExoMessage;
 
 /**
@@ -35,8 +37,8 @@ public class TransactionServerConnection extends Thread {
 			//Set up streams for reading from and writing to the socket.
 			ObjectOutputStream writer = new ObjectOutputStream(this.socket.getOutputStream());
 			ObjectInputStream reader = new ObjectInputStream(socket.getInputStream());
-			ExoMessage message;
-			ExoMessage response = new ExoMessage();
+			ExoMessage<?, ?> message;
+			ExoMessage<Serializable, Serializable> response = new ExoMessage<Serializable, Serializable>();
 			try {
 				//Read the message object and try to cast it to ExoMessage
 				Object tmp = reader.readObject();
@@ -44,7 +46,7 @@ public class TransactionServerConnection extends Thread {
 				ExoState state = (ExoState) this.platform.getState();
 				
 				try {
-					response = (ExoMessage) this.messageRouter.routeMessage(message, state);
+					response = (ExoMessage<Serializable, Serializable>) this.messageRouter.routeMessage(message, state);
 				} catch (IllegalArgumentException e) {
 					/*
 					 * This exception is thrown by transactionRouter when it can't figure 

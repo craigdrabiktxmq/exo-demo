@@ -19,8 +19,12 @@ import java.util.UUID;
  * can be designed in any application-specific way, Exo doesn't care.
  * 
  * @see com.txmq.exo.messaging.socket.ExoTransactionType
+ * 
+ * @param <T> the type of the input parameter carrier class.  Must implement Serializable.
+ * @param <U> the type of the output carrier class.  Must implement Serializable.
+ * 
  */
-public class ExoMessage implements Serializable {
+public class ExoMessage<T extends Serializable, U extends Serializable> implements Serializable {
 
 	/**
 	 * 
@@ -36,8 +40,13 @@ public class ExoMessage implements Serializable {
 	 * The business data associated with this transaction.  
 	 * It can be anything, as long as it's serializable.
 	 */
-	public Serializable payload;
+	public T payload;
 
+	/**
+	 * The result to be communicated back to the caller
+	 */
+	public U result;
+	
 	/**
 	 * Unique identifier.
 	 */
@@ -84,7 +93,7 @@ public class ExoMessage implements Serializable {
 	 * Initialize this message with the supplied transaction type and payload.
 	 * @param transactionType
 	 */
-	public ExoMessage(ExoTransactionType transactionType, Serializable payload) {
+	public ExoMessage(ExoTransactionType transactionType, T payload) {
 		super();
 		this.transactionType = transactionType;				
 		this.payload = payload;
@@ -116,9 +125,9 @@ public class ExoMessage implements Serializable {
 	 *             if anything goes wrong
 	 * @throws ClassNotFoundException 
 	 */
-	public static ExoMessage deserialize(byte[] b) throws IOException, ClassNotFoundException {
+	public static ExoMessage<?, ?> deserialize(byte[] b) throws IOException, ClassNotFoundException {
 		ObjectInputStream o = new ObjectInputStream(new ByteArrayInputStream(b));
-		ExoMessage result = (ExoMessage) o.readObject();
+		ExoMessage<?, ?> result = (ExoMessage<?, ?>) o.readObject();
 		o.close();
 		
 		return result;
