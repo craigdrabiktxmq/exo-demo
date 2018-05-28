@@ -42,7 +42,7 @@ public class ExoTransactionRouter extends ExoRouter<ExoTransaction> {
 	 * It will create the instance if it needs to.  Assuming it finds/creates
 	 * what it needs, it invokes the method passing in the message and state.
 	 */
-	public Object routeTransaction(ExoMessage<?, ?> message, ExoState state, boolean consensus) throws ReflectiveOperationException {
+	public Object routeTransaction(ExoMessage<?> message, ExoState state, boolean consensus) throws ReflectiveOperationException {
 		return this.invokeHandler(message.transactionType.getValue(), message, state, consensus);
 	}
 }

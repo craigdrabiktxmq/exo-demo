@@ -9,14 +9,15 @@ import com.txmq.socketdemo.SocketDemoState;
 import io.swagger.model.Zoo;
 
 //TODO:  Add metadata to identify this transaction type this handler responds to
-public class GetZooMessageHandler implements ExoMessageHandler<Serializable, Zoo, SocketDemoState> {
+public class GetZooMessageHandler implements ExoMessageHandler<Serializable, SocketDemoState> {
 
 	@Override
-	public void onMessageReceived(ExoMessage<Serializable, Zoo> message, SocketDemoState state) {
-		message.result = new Zoo();
-		message.result.lions(state.getLions());
-		message.result.tigers(state.getTigers());
-		message.result.bears(state.getBears());		
+	public Serializable onMessageReceived(ExoMessage<Serializable> message, SocketDemoState state) {
+		Zoo result = new Zoo();
+		result.lions(state.getLions());
+		result.tigers(state.getTigers());
+		result.bears(state.getBears());
+		
+		return result;
 	}
-
 }

@@ -14,16 +14,19 @@ import com.txmq.exo.messaging.ExoMessage;
  * @author craigdrabik
  *
  */
-public interface ExoMessageHandler<T extends Serializable, U extends Serializable, V extends ExoState> {
+public interface ExoMessageHandler<T extends Serializable, U extends ExoState> {
 
 	/**
 	 * This method is invoked in response to (messageReceived) events.  Handlers for
 	 * operations that only return data to the client and do not modify state should
 	 * interrupt the transaction before returning.
 	 * 
+	 * Developers may return a Serializable object containing results or other 
+	 * information about the request that may be relevant to subscribers
+	 * 
 	 * @param message
 	 * @param state
 	 */
-	public void onMessageReceived(ExoMessage<T, U> message, V state);
+	public Serializable onMessageReceived(ExoMessage<T> message, U state);
 	
 }

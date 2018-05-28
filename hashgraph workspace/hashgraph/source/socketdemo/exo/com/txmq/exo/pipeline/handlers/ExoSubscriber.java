@@ -15,7 +15,7 @@ import com.txmq.exo.messaging.ExoMessage;
  * @param <U> the type of the output carrier class.  Must implement Serializable.
  * @param <V> the type of the application's state (SwirldState subclass).
  */
-public interface ExoSubscriber<T extends Serializable, U extends Serializable, V extends ExoState> {
+public interface ExoSubscriber<T extends Serializable, U extends ExoState> {
 	
 	/**
 	 * Invoked in response to a transaction having been submitted to the 
@@ -24,7 +24,7 @@ public interface ExoSubscriber<T extends Serializable, U extends Serializable, V
 	 * @param message
 	 * @param state
 	 */
-	public void onSubmitted(ExoMessage<T, U> message, V state);
+	public void onSubmitted(ExoMessage<T> message, U state);
 	
 	/**
 	 * Invoked after pre-consensus transaction processing has occurred, 
@@ -34,7 +34,7 @@ public interface ExoSubscriber<T extends Serializable, U extends Serializable, V
 	 * @param message
 	 * @param state
 	 */
-	public void onPreConsensusResult(ExoMessage<T, U> message, V state);
+	public void onPreConsensusResult(ExoMessage<T> message, U state);
 	
 	/**
 	 * Invoked after consensus transaction processing has occurred, 
@@ -44,7 +44,7 @@ public interface ExoSubscriber<T extends Serializable, U extends Serializable, V
 	 * @param message
 	 * @param state
 	 */
-	public void onConsensusResult(ExoMessage<T, U> message, V state);
+	public void onConsensusResult(ExoMessage<T> message, U state);
 	
 	/**
 	 * Invoked when a transaction has completed its journey through the pipeline.
@@ -55,6 +55,6 @@ public interface ExoSubscriber<T extends Serializable, U extends Serializable, V
 	 * @param message
 	 * @param state
 	 */
-	public void onTransactionComplete(ExoMessage<T, U> message, V state);
+	public void onTransactionComplete(ExoMessage<T> message, U state);
 	
 }

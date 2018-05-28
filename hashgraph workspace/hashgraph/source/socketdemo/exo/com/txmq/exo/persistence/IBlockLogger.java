@@ -14,7 +14,7 @@ public interface IBlockLogger {
     /**
      * Adds a transaction to the next block
      */
-    public void addTransaction(ExoMessage<?, ?> transaction);
+    public void addTransaction(ExoMessage<?> transaction);
     
     /**
      * Asks the logger to persist a block to storage

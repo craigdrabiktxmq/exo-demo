@@ -32,21 +32,22 @@ public class TransactionServerConnection extends Thread {
 	/**
 	 * Accepts transactions in ExoMessage instances from the socket and process them.
 	 */
+	@SuppressWarnings("unchecked")
 	public void run() {
 		try {
 			//Set up streams for reading from and writing to the socket.
 			ObjectOutputStream writer = new ObjectOutputStream(this.socket.getOutputStream());
 			ObjectInputStream reader = new ObjectInputStream(socket.getInputStream());
-			ExoMessage<?, ?> message;
-			ExoMessage<Serializable, Serializable> response = new ExoMessage<Serializable, Serializable>();
+			ExoMessage<?> message;
+			ExoMessage<Serializable> response = new ExoMessage<Serializable>();
 			try {
 				//Read the message object and try to cast it to ExoMessage
 				Object tmp = reader.readObject();
-				message = (ExoMessage) tmp; 
+				message = (ExoMessage<?>) tmp; 
 				ExoState state = (ExoState) this.platform.getState();
 				
 				try {
-					response = (ExoMessage<Serializable, Serializable>) this.messageRouter.routeMessage(message, state);
+					response = (ExoMessage<Serializable>) this.messageRouter.routeMessage(message, state);
 				} catch (IllegalArgumentException e) {
 					/*
 					 * This exception is thrown by transactionRouter when it can't figure 

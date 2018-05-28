@@ -28,7 +28,7 @@ class BlockContents implements Serializable {
 	 * including the previous block's hash, and including that value in its own hash.
 	 */
 	public String previousBlockHash;
-	public List<ExoMessage<?, ?>> transactions = new ArrayList<ExoMessage<?, ?>>();
+	public List<ExoMessage<?>> transactions = new ArrayList<ExoMessage<?>>();
 	
 	/**
 	 * Calculates an SHA-256 hash of this object by first 

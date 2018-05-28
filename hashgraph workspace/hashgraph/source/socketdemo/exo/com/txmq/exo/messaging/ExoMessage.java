@@ -24,7 +24,7 @@ import java.util.UUID;
  * @param <U> the type of the output carrier class.  Must implement Serializable.
  * 
  */
-public class ExoMessage<T extends Serializable, U extends Serializable> implements Serializable {
+public class ExoMessage<T extends Serializable> implements Serializable {
 
 	/**
 	 * 
@@ -41,11 +41,6 @@ public class ExoMessage<T extends Serializable, U extends Serializable> implemen
 	 * It can be anything, as long as it's serializable.
 	 */
 	public T payload;
-
-	/**
-	 * The result to be communicated back to the caller
-	 */
-	public U result;
 	
 	/**
 	 * Unique identifier.
@@ -125,9 +120,9 @@ public class ExoMessage<T extends Serializable, U extends Serializable> implemen
 	 *             if anything goes wrong
 	 * @throws ClassNotFoundException 
 	 */
-	public static ExoMessage<?, ?> deserialize(byte[] b) throws IOException, ClassNotFoundException {
+	public static ExoMessage<?> deserialize(byte[] b) throws IOException, ClassNotFoundException {
 		ObjectInputStream o = new ObjectInputStream(new ByteArrayInputStream(b));
-		ExoMessage<?, ?> result = (ExoMessage<?, ?>) o.readObject();
+		ExoMessage<?> result = (ExoMessage<?>) o.readObject();
 		o.close();
 		
 		return result;

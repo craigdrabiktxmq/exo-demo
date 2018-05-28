@@ -6,19 +6,20 @@ import com.txmq.socketdemo.SocketDemoState;
 
 import io.swagger.model.Animal;
 
-public class AddAnimalTransactionHandler implements ExoTransactionHandler<Animal, Animal, SocketDemoState> {
+public class AddAnimalTransactionHandler implements ExoTransactionHandler<Animal, SocketDemoState> {
 
 	@Override
-	public void onExecutePreConsensus(ExoMessage<Animal, Animal> message, SocketDemoState state) {
-		message.result = this.addToZoo(message.payload, state);		
+	public Animal onExecutePreConsensus(ExoMessage<Animal> message, SocketDemoState state) {
+		return this.addToZoo(message.payload, state);		
 	}
 
 	@Override
-	public void onExecuteConsensus(ExoMessage<Animal, Animal> message, SocketDemoState state) {
-		message.result = this.addToZoo(message.payload, state);		
+	public Animal onExecuteConsensus(ExoMessage<Animal> message, SocketDemoState state) {
+		return this.addToZoo(message.payload, state);		
 	}
 	
 	private Animal addToZoo(Animal animal, SocketDemoState state) {
+		//TODO:  Test if the animal is in state and throw an exception if so to demo handling errors.
 		switch (animal.getSpecies()) {
 			case "lion":
 				state.addLion(animal.getName());

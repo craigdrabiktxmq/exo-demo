@@ -32,8 +32,8 @@ public class EndpointsApi {
 	@Path("/shutdown")
 	public Response shutdown() {
 		
-		ExoMessage<Serializable, Serializable> transaction = 
-				new ExoMessage<Serializable, Serializable>(new ExoTransactionType(ExoTransactionType.SHUTDOWN));
+		ExoMessage<Serializable> transaction = 
+				new ExoMessage<Serializable>(new ExoTransactionType(ExoTransactionType.SHUTDOWN));
 		try {
 			ExoPlatformLocator.createTransaction(transaction);
 		} catch (Exception e) {

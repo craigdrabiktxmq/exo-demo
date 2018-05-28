@@ -147,7 +147,7 @@ public class CouchDBBlockLogger implements IBlockLogger {
 	 * only once.
 	 */
 	@Override
-	public synchronized void addTransaction(ExoMessage<?, ?> transaction) {
+	public synchronized void addTransaction(ExoMessage<?> transaction) {
 		this.block.addTransaction(transaction);
 		if (this.block.getBlockSize() == this.BLOCK_SIZE) {
 			this.save(block);

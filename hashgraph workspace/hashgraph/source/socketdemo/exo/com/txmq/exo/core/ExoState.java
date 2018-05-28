@@ -85,7 +85,7 @@ public class ExoState {
 			Instant timeCreated, byte[] transaction, Address address) {
 		
 		try {
-			ExoMessage<?, ?> message = ExoMessage.deserialize(transaction);
+			ExoMessage<?> message = ExoMessage.deserialize(transaction);
 			if (consensus) {
 				ExoPlatformLocator.getBlockLogger().addTransaction(message, this.myName);
 			}

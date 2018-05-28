@@ -361,7 +361,7 @@ public class ExoPlatformLocator {
 				
 			}
 			createTransaction(
-				new ExoMessage<Serializable, Serializable>(
+				new ExoMessage<Serializable>(
 					new ExoTransactionType(ExoTransactionType.ANNOUNCE_NODE),
 					externalUrl
 				)
@@ -423,7 +423,7 @@ public class ExoPlatformLocator {
 	 * 
 	 * This signature is a convenience method for passing ExoMessages.
 	 */
-	public static boolean createTransaction(ExoMessage<?, ?> transaction) throws IOException {
+	public static boolean createTransaction(ExoMessage<?> transaction) throws IOException {
 		return createTransaction(transaction.serialize(), null);
 	}
 	

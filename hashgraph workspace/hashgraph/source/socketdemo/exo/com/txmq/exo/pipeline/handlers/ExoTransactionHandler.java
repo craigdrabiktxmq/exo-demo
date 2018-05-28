@@ -16,25 +16,31 @@ import com.txmq.exo.messaging.ExoMessage;
  * @author craigdrabik
  *
  */
-public interface ExoTransactionHandler<T extends Serializable, U extends Serializable, V extends ExoState> {
+public interface ExoTransactionHandler<T extends Serializable, U extends ExoState> {
 
 	/**
 	 * Invoked when a transaction is ready to be processed pre-consensus, e.g. 
 	 * SwirldState.handleTransaction() has been invoked with the consensus 
 	 * flag set to false.
 	 * 
+	 * Developers may return a Serializable object containing results or other 
+	 * information about the request that may be relevant to subscribers
+	 * 
 	 * @param message
 	 * @param state
 	 */
-	public void onExecutePreConsensus(ExoMessage<T, U> message, V state);
+	public Serializable onExecutePreConsensus(ExoMessage<T> message, U state);
 	
 	/**
 	 * Invoked when a transaction is ready to be processed pre-consensus, e.g. 
 	 * SwirldState.handleTransaction() has been invoked with the consensus 
 	 * flag set to false.
+	 *
+ 	 * Developers may return a Serializable object containing results or other 
+	 * information about the request that may be relevant to subscribers
 	 * 
 	 * @param message
 	 * @param state
 	 */
-	public void onExecuteConsensus(ExoMessage<T, U> message, V state);
+	public Serializable onExecuteConsensus(ExoMessage<T> message, U state);
 }
