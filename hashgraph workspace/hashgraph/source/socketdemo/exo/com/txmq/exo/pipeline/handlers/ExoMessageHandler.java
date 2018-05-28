@@ -4,7 +4,7 @@ import com.txmq.exo.core.ExoState;
 import com.txmq.exo.messaging.ExoMessage;
 
 /**
- * Interface that application message handlers must implement.  Typically message 
+ * Interface that application message handlers must implement.  Typically, message 
  * handlers are used to read data from the state and return it to client applications.  
  * Message handlers can also be used to perform calculations, acquire external data or 
  * implement authorization logic before Swirlds transactions are created.
@@ -12,7 +12,7 @@ import com.txmq.exo.messaging.ExoMessage;
  * @author craigdrabik
  *
  */
-public interface ExoMessageHandler {
+public interface ExoMessageHandler<T extends ExoMessage, U extends ExoState> {
 
 	/**
 	 * This method is invoked in response to (messageReceived) events.  Handlers for
@@ -22,6 +22,6 @@ public interface ExoMessageHandler {
 	 * @param message
 	 * @param state
 	 */
-	public void onMessageReceived(ExoMessage message, ExoState state);
+	public void onMessageReceived(T message, U state);
 	
 }
