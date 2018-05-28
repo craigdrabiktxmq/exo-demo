@@ -3,6 +3,9 @@ Event-Driven Exo
 
 Exo2 switches to an event-based architecture
 
+## BREAKING CHANGES
+* ExoTransactionType has moved from String keys to Integer keys.  This will save some size on the serialized transaction payloads.
+
 ## Pipeline and Events
 Transactions move through a predefined pipeline.  The framework automatically moves transactions from one step to the next.  Events are emitted at each step.  Developers register hooks for pertinent events and implement their application's business logic in the hooks.  Each transaction is represented by a message, which contains the transaction's inputs and the transaction state.  The transaction state is developer-defined, and is used to capture the progress of the transaction through the pipeline and the results obtained when processing each step.  At any point in the pipeline, transactions can be *interrupted*, which ends further progress along the pipeline.
 
@@ -43,3 +46,13 @@ Transaction handlers listen for platform events.
 Subscribers react to a transaction's progress through the pipeline.  Typically, subscribers will be used to listen for the completion of a transaction and relay the results to client applications.  In a REST application, subscribers are typically invoked only once while a WebSocket could relay multiple messages about a single transaction back to a client application.  Subscribers run in your application's SwirldsMain and can therefore also be used to take action in response to events occurring on its node.
 
 Subscribers listen for reporting events.
+
+
+Notes
+=====
+
+## Notifications
+* related message ID
+* status
+* pipeline stage
+# payload
