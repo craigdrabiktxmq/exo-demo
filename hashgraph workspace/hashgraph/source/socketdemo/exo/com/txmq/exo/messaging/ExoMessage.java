@@ -25,7 +25,7 @@ public class ExoMessage implements Serializable {
 	/**
 	 * 
 	 */
-	private static final long serialVersionUID = -543276168606092941L;
+	private static final long serialVersionUID = -543276168606092942L;
 
 	/**
 	 * The type of transaction this represents
@@ -39,17 +39,35 @@ public class ExoMessage implements Serializable {
 	public Serializable payload;
 
 	/**
-	 * Hash of a unique identifier.
-	 * 
-	 * TODO:  Is this still needed?  This may be leftover from debugging the CouchDB block logger
+	 * Unique identifier.
 	 */
-	public int uuidHash;
+	public UUID uuid;
 
+	/**
+	 * Indicates that this transaction has been interrupted.  This transaction will 
+	 * cease moving through the pipeline and go straight to the completed state.
+	 */
+	private boolean interrupted = false;
+	
+	/**
+	 * Tests if this transaction has been interrupted.
+	 * @return
+	 */
+	public boolean isInterrupted() {
+		return this.interrupted;
+	}
+	
+	/**
+	 * Interrupts this transaction.
+	 */
+	protected void interrupt() {
+		this.interrupted = true;
+	}
 	
 	public ExoMessage() {
 		super();
 		this.transactionType = new ExoTransactionType();
-		this.uuidHash = UUID.randomUUID().hashCode();
+		this.uuid = UUID.randomUUID();
 	}
 	
 	/**
@@ -59,7 +77,7 @@ public class ExoMessage implements Serializable {
 	public ExoMessage(ExoTransactionType transactionType) {
 		super();
 		this.transactionType = transactionType;	
-		this.uuidHash = UUID.randomUUID().hashCode();
+		this.uuid = UUID.randomUUID();
 	}
 	
 	/**
@@ -70,7 +88,7 @@ public class ExoMessage implements Serializable {
 		super();
 		this.transactionType = transactionType;				
 		this.payload = payload;
-		this.uuidHash = UUID.randomUUID().hashCode();
+		this.uuid = UUID.randomUUID();
 	}
 	
 	/**

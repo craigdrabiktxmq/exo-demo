@@ -33,7 +33,6 @@ public class CouchDBBlockLogger implements IBlockLogger {
 	private int BLOCK_SIZE = 4;
 	private Block block;
 	private CouchDbClient client;
-	private Map<Integer, Integer> processedTransactions = new HashedMap<Integer, Integer>();
 	
 	/**
 	 * No-op constructor, intended to be used in conjunction with the configure() method.  
@@ -146,24 +145,12 @@ public class CouchDBBlockLogger implements IBlockLogger {
 	 * Adds a transaction to the block.  The logger tracks transactions that
 	 * have been added to blocks to ensure that transactions are written 
 	 * only once.
-	 * 
-	 * TODO:  We probably don't need to track the transactions any more.
-	 * I was doing this while debugging the block writer.  The issue it
-	 * was intended to mitigate was probably fixed by tracking separate
-	 * loggers for each node, and only logging transactions that have 
-	 * reached consensus
 	 */
 	@Override
 	public synchronized void addTransaction(ExoMessage transaction) {
-		if (!this.processedTransactions.containsKey(transaction.uuidHash)) { 
-			this.processedTransactions.put(transaction.uuidHash, 1);
-			this.block.addTransaction(transaction);
-			if (this.block.getBlockSize() == this.BLOCK_SIZE) {
-				this.save(block);
-			}
-		} else {
-			Integer count = this.processedTransactions.get(transaction.uuidHash);
-			this.processedTransactions.put(transaction.uuidHash, count + 1);
+		this.block.addTransaction(transaction);
+		if (this.block.getBlockSize() == this.BLOCK_SIZE) {
+			this.save(block);
 		}
 	}
 
