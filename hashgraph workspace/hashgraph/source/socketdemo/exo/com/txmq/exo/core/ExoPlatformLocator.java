@@ -25,13 +25,12 @@ import com.swirlds.platform.SwirldState;
 import com.txmq.exo.config.ExoConfig;
 import com.txmq.exo.config.MessagingConfig;
 import com.txmq.exo.messaging.ExoMessage;
-import com.txmq.exo.messaging.ExoMessage;
 import com.txmq.exo.messaging.ExoTransactionType;
 import com.txmq.exo.messaging.rest.CORSFilter;
 import com.txmq.exo.messaging.socket.TransactionServer;
 import com.txmq.exo.persistence.BlockLogger;
 import com.txmq.exo.persistence.IBlockLogger;
-import com.txmq.exo.transactionrouter.ExoTransactionRouter;
+import com.txmq.exo.pipeline.routers.ExoPipelineRouter;
 
 /**
  * A static locator class for Exo platform constructs.  This class allows applications
@@ -48,10 +47,9 @@ public class ExoPlatformLocator {
 	private static Platform platform;
 
 	/**
-	 * Reference to Exo's transaction router.  An application should have only one
-	 * router.  Developers should never need to create one.
+	 * Pipeline router 
 	 */
-	private static ExoTransactionRouter transactionRouter = new ExoTransactionRouter();
+	private static ExoPipelineRouter pipelineRouter = new ExoPipelineRouter();
 	
 	/**
 	 * Reference to the block logging manager
@@ -259,8 +257,8 @@ public class ExoPlatformLocator {
 	}
 	
 	public static synchronized void init(	Platform platform, 
-							Class<? extends ExoTransactionType> transactionTypeClass, 
-							String[] transactionProcessorPackages) {
+											Class<? extends ExoTransactionType> transactionTypeClass, 
+											String[] transactionProcessorPackages) {
 		init(platform);
 		
 		//Hokey, but we cause the transaction type class to initialize itself by simply instantiating one..
@@ -271,9 +269,7 @@ public class ExoPlatformLocator {
 			e.printStackTrace();
 		}
 
-		for (String tpp : transactionProcessorPackages) {
-			transactionRouter.addPackage(tpp);
-		}
+		pipelineRouter.init(transactionProcessorPackages);
 	}
 	
 	
@@ -421,38 +417,42 @@ public class ExoPlatformLocator {
 	 * over ExoPlatformLocator.getPlatform().createTransaction() to enable unit testing 
 	 * via test mode.
 	 * 
-	 * This signature is a convenience method for passing ExoMessages.
-	 */
-	public static boolean createTransaction(ExoMessage<?> transaction) throws IOException {
-		return createTransaction(transaction.serialize(), null);
-	}
-	
-	/**
-	 * Submits a transaction to the platform.  Applications should use this method
-	 * over ExoPlatformLocator.getPlatform().createTransaction() to enable unit testing 
-	 * via test mode.
-	 * 
 	 * This signature matches the createTransaction signature of the Swirlds Platform.
 	 */
-	public static boolean createTransaction(byte[] transaction, long[] hintIds) {
-		if (testState == null) {
-			return platform.createTransaction(transaction);
-		} else {
-			long transactionID = new Random().nextLong();
-			Instant timeCreated = Instant.now();
-			
-			ExoState preConsensusState = null;
+	public static void createTransaction(ExoMessage<? extends Serializable> transaction) throws IOException {
+		//Check if we're running in test mode.
+		long transactionID = new Random().nextLong();
+		Instant timeCreated = Instant.now();
+		ExoState preConsensusState = null;
+		
+		if (testState != null) {
+			//Test mode..  Get a pre-consensus copy of the state
 			try {
 				preConsensusState = (ExoState) testState.getClass().getConstructors()[0].newInstance();
 			} catch (Exception e) {
 				// TODO Better error handling..
 				e.printStackTrace();
 			}
-
+			
 			preConsensusState.copyFrom((SwirldState) testState);
-			preConsensusState.handleTransaction(transactionID, false, timeCreated, transaction, null);
-			testState.handleTransaction(transactionID, true, timeCreated, transaction, null);
-			return true;
+			
+			//We have a temporary state constructed.  Run the rest of the pipeline.
+		} else {
+			preConsensusState = getState();
+		}
+		
+		//Process message received handlers
+		pipelineRouter.routeMessageReceived(transaction, getState());
+		
+		//If the transaction was not interrupted, submit it to the platform
+		if (transaction.isInterrupted() == false) {
+			byte[] serializedTransaction = transaction.serialize();
+			if (testState != null) {
+				preConsensusState.handleTransaction(transactionID, false, timeCreated, serializedTransaction, null);
+				testState.handleTransaction(transactionID, true, timeCreated, serializedTransaction, null);
+			} else {
+				platform.createTransaction(serializedTransaction);
+			}
 		}
 	}
 	
@@ -479,7 +479,7 @@ public class ExoPlatformLocator {
 	 * because this method supports returning a state in test mode without initializing
 	 * the platform.
 	 */
-	public static SwirldState getState() throws IllegalStateException {
+	public static ExoState getState() throws IllegalStateException {
 		if (ExoPlatformLocator.testState == null) {
 			if (platform == null) {
 				throw new IllegalStateException(
@@ -488,18 +488,18 @@ public class ExoPlatformLocator {
 				);
 			}
 			
-			return platform.getState();
+			return (ExoState) platform.getState();
 		} else {
-			return (SwirldState) testState;
+			return testState;
 		}
 	}
 	
 	/**
-	 * Accessor for the Exo transaction router.  
-	 * @see com.txmq.exo.transactionrouter.ExoTransactionRouter
+	 * Accessor for the Exo pipeline router.  
+	 * @see com.txmq.exo.pipeline.routers.ExoPipelineRouter
 	 */
-	public static ExoTransactionRouter getTransactionRouter() {
-		return transactionRouter;
+	public static ExoPipelineRouter getTransactionRouter() {
+		return pipelineRouter;
 	}
 	
 	/**

@@ -1,51 +1,55 @@
 package com.txmq.socketdemo.rest;
 
 import java.io.IOException;
+import java.io.Serializable;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.container.AsyncResponse;
+import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import com.txmq.exo.core.ExoPlatformLocator;
 import com.txmq.exo.messaging.ExoMessage;
-import com.txmq.socketdemo.SocketDemoState;
+import com.txmq.exo.pipeline.ReportingEvents;
+import com.txmq.exo.pipeline.subscribers.ExoSubscriberManager;
 import com.txmq.socketdemo.SocketDemoTransactionTypes;
 
 import io.swagger.model.Animal;
-import io.swagger.model.Zoo;
+
 @Path("/HashgraphZoo/1.0.0")
 public class ZooRestApi {
+	private ExoSubscriberManager subscriberManager = new ExoSubscriberManager();
+	
 	@GET
 	@Path("/zoo")
 	@Produces(MediaType.APPLICATION_JSON)
-	public Response getZoo() {
-		SocketDemoState state = (SocketDemoState) ExoPlatformLocator.getState();
-		Zoo result = new Zoo();
-		result.lions(state.getLions());
-		result.tigers(state.getTigers());
-		result.bears(state.getBears());
+	public void getZoo(@Suspended final AsyncResponse response) {
+		ExoMessage<Serializable> message = new ExoMessage<Serializable>(
+				new SocketDemoTransactionTypes(SocketDemoTransactionTypes.GET_ZOO),
+				null
+		);
 		
-		return Response.ok().entity(result).build();
+		this.subscriberManager.registerResponder(message, ReportingEvents.transactionComplete, response);
+		try {
+			message.submit();
+		} catch (IOException e) {
+			response.resume(Response.serverError().entity(e).build());
+		}
 	}
 	
 	@POST
 	@Path("/zoo/animals")
 	@Produces(MediaType.APPLICATION_JSON)
-	public Response addAnimal(Animal animal) {
-		ExoMessage message = new ExoMessage(new SocketDemoTransactionTypes(SocketDemoTransactionTypes.ADD_ANIMAL), animal);
-		
+	public void addAnimal(Animal animal, @Suspended final AsyncResponse response) {
+		ExoMessage<Animal> message = new ExoMessage<Animal>(new SocketDemoTransactionTypes(SocketDemoTransactionTypes.ADD_ANIMAL), animal);
+		this.subscriberManager.registerResponder(message, ReportingEvents.transactionComplete, response);
 		try {
-			ExoPlatformLocator.getPlatform().createTransaction(message.serialize());
-		} catch (IllegalStateException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			message.submit();
+		} catch (Exception e) {
+			response.resume(Response.serverError().entity(e).build());
 		}
-		return Response.status(201).entity(animal).build();
 	}
 }

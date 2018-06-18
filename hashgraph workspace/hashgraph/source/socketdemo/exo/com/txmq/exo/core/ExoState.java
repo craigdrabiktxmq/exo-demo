@@ -1,6 +1,7 @@
 package com.txmq.exo.core;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -86,10 +87,15 @@ public class ExoState {
 		
 		try {
 			ExoMessage<?> message = ExoMessage.deserialize(transaction);
-			if (consensus) {
-				ExoPlatformLocator.getBlockLogger().addTransaction(message, this.myName);
+			if (consensus == false) {
+				//Route the transaction through the pre-consensus part of the pipeline
+				ExoPlatformLocator.getTransactionRouter().routeExecutePreConsensus(message, this);				
+			} else {
+				ExoPlatformLocator.getTransactionRouter().routeExecutePreConsensus(message, this);
+				if (message.isInterrupted() == false) {
+					ExoPlatformLocator.getBlockLogger().addTransaction(message, this.myName);
+				}
 			}
-			ExoPlatformLocator.getTransactionRouter().routeTransaction(message, this, consensus);				
 		} catch (ClassNotFoundException e) {
 			e.printStackTrace();
 		} catch (IOException e) {

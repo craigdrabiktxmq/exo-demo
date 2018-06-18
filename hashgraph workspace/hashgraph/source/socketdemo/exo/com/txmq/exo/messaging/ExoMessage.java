@@ -8,6 +8,8 @@ import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.UUID;
 
+import com.txmq.exo.core.ExoPlatformLocator;
+
 /**
  * ExoMessage is the base wrapper for transactions that come in through Exo. 
  * The framework is designed to work with instances of ExoMessage.  It is
@@ -64,8 +66,15 @@ public class ExoMessage<T extends Serializable> implements Serializable {
 	/**
 	 * Interrupts this transaction.
 	 */
-	protected void interrupt() {
+	public void interrupt() {
 		this.interrupted = true;
+	}
+	
+	/**
+	 * Inserts the transaction into the pipeline, beginning processing
+	 */
+	public void submit() throws IOException {
+		ExoPlatformLocator.createTransaction(this);
 	}
 	
 	public ExoMessage() {

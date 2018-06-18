@@ -4,6 +4,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -70,6 +71,8 @@ public abstract class ExoRouter<T extends Annotation> {
 	public ExoRouter() {
 		this.transactionMap = new HashMap<Integer, Method>();
 		this.transactionProcessors = new HashMap<Class<?>, Object>(); 		
+		Type tmp = ((ParameterizedType) getClass().getGenericSuperclass()).getActualTypeArguments()[0];
+		Class clazz = (Class) tmp;
 		this.annotationType = ((Class<? extends Annotation>) ((ParameterizedType) getClass().getGenericSuperclass()).getActualTypeArguments()[0]);
 	}
 	

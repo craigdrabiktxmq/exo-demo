@@ -55,4 +55,14 @@ Notes
 * related message ID
 * status
 * pipeline stage
-# payload
+* payload
+
+Handlers should throw an exception to indicate that an error has occurred.  Exception can contain HTTP status-like error information and an optional stack trace
+
+## NEXT:
+- Define annotations for subscribers, transaction handlers, message handlers - DONE
+- Implement routers for annotations
+- Notification class (extends ExoMessage, see Notifications above) - DONE
+- Add to pipeline (ExoMessage.start()?)
+5 Test
+6 Websocket

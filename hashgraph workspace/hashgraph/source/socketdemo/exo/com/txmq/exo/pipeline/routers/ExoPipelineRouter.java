@@ -1,0 +1,199 @@
+package com.txmq.exo.pipeline.routers;
+
+import java.io.Serializable;
+import java.util.List;
+
+import com.txmq.exo.core.ExoState;
+import com.txmq.exo.messaging.ExoMessage;
+import com.txmq.exo.messaging.ExoNotification;
+import com.txmq.exo.pipeline.PipelineStatus;
+import com.txmq.exo.pipeline.PlatformEvents;
+import com.txmq.exo.pipeline.ReportingEvents;
+import com.txmq.exo.pipeline.metadata.ExoHandler;
+import com.txmq.exo.pipeline.metadata.ExoHandlers;
+import com.txmq.exo.pipeline.metadata.ExoSubscriber;
+import com.txmq.exo.pipeline.metadata.ExoSubscribers;
+
+public class ExoPipelineRouter {
+
+	////	Routers for Platform Events 	////
+	
+	/**
+	 *	Routes messages to methods annotated with @ExoHandler(PlatformEvents.messageReceived).
+	 *	Used to route incoming messages to handlers that read data from state and return it to the client. 
+	 */
+	protected ExoParameterizedRouter<ExoHandlers, PlatformEvents> messageReceivedRouter = 
+			new ExoParameterizedRouter<ExoHandlers, PlatformEvents>(PlatformEvents.messageReceived);
+	
+	/**
+	 *	Routes messages to methods annotated with @ExoHandler(PlatformEvents.executePreConsensus).
+	 *	Used to route incoming messages to handlers that perform validation and processing pre-consensus. 
+	 */
+	protected ExoParameterizedRouter<ExoHandlers, PlatformEvents> executePreConsensusRouter = 
+			new ExoParameterizedRouter<ExoHandlers, PlatformEvents>(PlatformEvents.executePreConsensus);
+	
+	/**
+	 *	Routes messages to methods annotated with @ExoHandler(PlatformEvents.executeConsensus).
+	 *	Used to route incoming messages to handlers that perform validation and processing at consensus. 
+	 */
+	protected ExoParameterizedRouter<ExoHandlers, PlatformEvents> executeConsensusRouter = 
+			new ExoParameterizedRouter<ExoHandlers, PlatformEvents>(PlatformEvents.executeConsensus);
+	
+	////	Routers for Reporting Events	////
+	
+	/**
+	 * Routes notifications to methods annotated with @ExoSubscriber(ReportingEvents.submitted).
+	 * Used to notify clients that a transaction has been submitted to the platform.
+	 */
+	protected ExoParameterizedRouter<ExoSubscribers, ReportingEvents> submittedRouter = 
+			new ExoParameterizedRouter<ExoSubscribers, ReportingEvents>(ReportingEvents.submitted);
+	
+	/**
+	 * Routes notifications to methods annotated with @ExoSubscriber(ReportingEvents.preConsensusResult).
+	 * Used to notify clients that processing has occurred pre-consensus.  
+	 */
+	protected ExoParameterizedRouter<ExoSubscribers, ReportingEvents> preConsensusResultRouter = 
+			new ExoParameterizedRouter<ExoSubscribers, ReportingEvents>(ReportingEvents.preConsensusResult);
+	
+	/**
+	 * Routes notifications to methods annotated with @ExoSubscriber(ReportingEvents.submitted).
+	 * Used to notify clients that processing has occurred at consensus.
+	 */
+	protected ExoParameterizedRouter<ExoSubscribers, ReportingEvents> consensusResultRouter = 
+			new ExoParameterizedRouter<ExoSubscribers, ReportingEvents>(ReportingEvents.consensusResult);
+	
+	/**
+	 * Routes notifications to methods annotated with @ExoSubscriber(ReportingEvents.transactionComplete).
+	 * Used to notify clients that transaction processing has completed.
+	 */
+	protected ExoParameterizedRouter<ExoSubscribers, ReportingEvents> transactionCompletedRouter = 
+			new ExoParameterizedRouter<ExoSubscribers, ReportingEvents>(ReportingEvents.transactionComplete);
+		
+	public void init(String[] packages) {
+		for (String pkg : packages ) {
+			this.messageReceivedRouter.addPackage(pkg);
+			this.executeConsensusRouter.addPackage(pkg);
+			this.executeConsensusRouter.addPackage(pkg);
+			this.submittedRouter.addPackage(pkg);
+			this.preConsensusResultRouter.addPackage(pkg);
+			this.consensusResultRouter.addPackage(pkg);
+			this.transactionCompletedRouter.addPackage(pkg);
+		}
+	}
+	
+	
+	public void routeMessageReceived(ExoMessage<?> message, ExoState state) {
+		System.out.println("Routing " + message.uuid + " to messageReceived");
+		try {
+			Serializable result = this.route(message, state, this.messageReceivedRouter);
+			if (message.isInterrupted()) {
+				this.sendNotification(ReportingEvents.transactionComplete, result, message, this.transactionCompletedRouter);
+			}
+		} catch (ExoRoutingException e) {
+			/*
+			 * Indicates that something happened during processing that should prevent 
+			 * the normal notification handler from running.  We don't need to handle 
+			 * it directly, it's purpose is simply to short circuit notification.
+			 */
+		}
+	}
+	
+	public void routeExecutePreConsensus(ExoMessage<?> message, ExoState state) throws ReflectiveOperationException {
+		System.out.println("Routing " + message.uuid + " to executePreConsensus");
+		try {
+			Serializable result = this.route(message, state, this.executeConsensusRouter);
+			if (message.isInterrupted()) {
+				this.sendNotification(ReportingEvents.transactionComplete, result, message, this.transactionCompletedRouter);
+			}
+		} catch (ExoRoutingException e) {
+			/*
+			 * Indicates that something happened during processing that should prevent 
+			 * the normal notification handler from running.  We don't need to handle 
+			 * it directly, it's purpose is simply to short circuit notification.
+			 */
+		}
+	}
+	
+	public void routeExecuteConsensus(ExoMessage<?> message, ExoState state) throws ReflectiveOperationException {
+		System.out.println("Routing " + message.uuid + " to executeConsensus");
+		try {
+			Serializable result = this.route(message, state, this.messageReceivedRouter);
+			if (message.isInterrupted()) {
+				this.sendNotification(ReportingEvents.transactionComplete, result, message, this.executeConsensusRouter);
+			}
+		} catch (ExoRoutingException e) {
+			/*
+			 * Indicates that something happened during processing that should prevent 
+			 * the normal notification handler from running.  We don't need to handle 
+			 * it directly, it's purpose is simply to short circuit notification.
+			 */
+		}		
+	}
+	
+	private Serializable route(ExoMessage<?> message, ExoState state, ExoParameterizedRouter<?, ?> router) throws ExoRoutingException {
+		Serializable result = null;
+		try {
+			result = router.routeTransaction(message, state);
+			//If the transaction was interrupted, notify transactionComplete handlers
+		} catch (Exception e) {
+			/* 
+			 * Something has gone wrong that was unhandled.  Interrupt processing and return the
+			 * error in a transactionCompelete notification 
+			 */
+			
+			message.interrupt();
+			ExoNotification<Exception> notification = 
+					new ExoNotification<Exception>(	ReportingEvents.transactionComplete, 
+							e, 
+							PipelineStatus.ERROR, 
+							message);
+			
+			this.sendNotification(notification);
+			throw new ExoRoutingException();
+		}	
+		
+		return result;
+	}
+	
+	private void sendNotification(	ReportingEvents event, 
+									Serializable payload, 
+									ExoMessage<?> triggeringMessage, 
+									ExoParameterizedRouter<?, ?> router) {
+		this.sendNotification(	new ExoNotification<Serializable>(	event, 
+																	payload, 
+																	PipelineStatus.ERROR, 
+																	triggeringMessage)
+		);		
+	}
+	
+	private void sendNotification(ExoNotification<?> notification) {
+		System.out.println("Routing " + notification.triggeringMessage.uuid + " to " + notification.event.toString());
+		
+		ExoParameterizedRouter<ExoSubscribers, ReportingEvents> router = null;
+		switch (notification.event) {
+			case submitted:
+				router = this.submittedRouter;
+				break;
+			case preConsensusResult:
+				router = this.preConsensusResultRouter;
+				break;
+			case consensusResult:
+				router = this.consensusResultRouter;
+				break;
+			case transactionComplete:
+				router = this.transactionCompletedRouter;
+				break;				
+		}
+		
+		try {
+			router.routeTransaction(notification, null);
+		} catch (Exception e) {
+			/* 
+			 * Something has gone wrong that was unhandled while sending a notification.  
+			 * In this case, we don't want to interrupt the further processing of the transaction
+			 */
+			
+			e.printStackTrace();
+		}	
+	}
+}

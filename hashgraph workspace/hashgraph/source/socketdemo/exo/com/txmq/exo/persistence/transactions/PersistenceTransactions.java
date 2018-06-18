@@ -4,11 +4,12 @@ import com.txmq.exo.core.ExoPlatformLocator;
 import com.txmq.exo.core.ExoState;
 import com.txmq.exo.messaging.ExoMessage;
 import com.txmq.exo.messaging.ExoTransactionType;
-import com.txmq.exo.transactionrouter.ExoTransaction;
+import com.txmq.exo.pipeline.PlatformEvents;
+import com.txmq.exo.pipeline.metadata.ExoHandler;
 
 public class PersistenceTransactions {
 
-	@ExoTransaction(ExoTransactionType.SHUTDOWN)
+	@ExoHandler(transactionType=ExoTransactionType.SHUTDOWN, event=PlatformEvents.executeConsensus)
 	public ExoMessage<?> shutdown(ExoMessage<?> message, ExoState state, boolean consensus) {
 		//If we have a block logger, then ask it to flush to the chain.
 		if (ExoPlatformLocator.getBlockLogger() != null) {
@@ -19,7 +20,7 @@ public class PersistenceTransactions {
 		return message;
 	}
 	
-	@ExoTransaction(ExoTransactionType.RECOVER_STATE)
+	@ExoHandler(transactionType=ExoTransactionType.RECOVER_STATE, event=PlatformEvents.executeConsensus)
 	public ExoMessage<?> recoverState(ExoMessage<?> message, ExoState state, boolean consensus) {
 		return message;
 	}

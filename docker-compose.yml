@@ -32,11 +32,11 @@ services:
         condition: always    
     ports:
      - "8888:8080"    
-  couchdb:
-    image: couchdb:2.1
-    ports: 
-      - "5984:5984"
-    deploy:
-      replicas: 1
-      restart_policy:
-        condition: always
+#  couchdb:
+#    image: couchdb:2.1
+#    ports: 
+#      - "5984:5984"
+#    deploy:
+#      replicas: 1
+#      restart_policy:
+#        condition: always

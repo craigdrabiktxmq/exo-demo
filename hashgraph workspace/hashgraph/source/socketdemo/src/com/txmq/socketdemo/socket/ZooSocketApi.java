@@ -1,9 +1,8 @@
 package com.txmq.socketdemo.socket;
 
-import com.txmq.exo.core.ExoPlatformLocator;
-import com.txmq.exo.core.ExoState;
+import java.io.Serializable;
+
 import com.txmq.exo.messaging.ExoMessage;
-import com.txmq.exo.messaging.ExoTransactionType;
 import com.txmq.exo.messaging.socket.ExoMessageHandler;
 import com.txmq.socketdemo.SocketDemoState;
 import com.txmq.socketdemo.SocketDemoTransactionTypes;
@@ -13,17 +12,13 @@ import io.swagger.model.Zoo;
 public class ZooSocketApi {
 
 	@ExoMessageHandler(SocketDemoTransactionTypes.GET_ZOO)
-	public ExoMessage getZoo(ExoMessage message, ExoState state) {
-		SocketDemoState _state = (SocketDemoState) ExoPlatformLocator.getState();
+	public Serializable getZoo(ExoMessage<?> message, SocketDemoState state) {
 		Zoo result = new Zoo();
-		result.lions(_state.getLions());
-		result.tigers(_state.getTigers());
-		result.bears(_state.getBears());
+		result.lions(state.getLions());
+		result.tigers(state.getTigers());
+		result.bears(state.getBears());
 		
-		return new ExoMessage(
-			new ExoTransactionType(ExoTransactionType.ACKNOWLEDGE),
-			result
-		);
+		return result;
 		
 	}
 }
