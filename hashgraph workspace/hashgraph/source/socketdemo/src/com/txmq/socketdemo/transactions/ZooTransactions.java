@@ -11,8 +11,8 @@ import io.swagger.model.Zoo;
 
 public class ZooTransactions {
 
-	//@ExoHandler(transactionType=SocketDemoTransactionTypes.ADD_ANIMAL, event=PlatformEvents.executePreConsensus)
-	@ExoHandler(transactionType=SocketDemoTransactionTypes.ADD_ANIMAL, event=PlatformEvents.executeConsensus)
+	@ExoHandler(transactionType=SocketDemoTransactionTypes.ADD_ANIMAL, 
+				events={PlatformEvents.executePreConsensus, PlatformEvents.executeConsensus})
 	public void addAnimal(ExoMessage<?> message, SocketDemoState state) {
 		Animal animal = (Animal) message.payload;
 		switch (animal.getSpecies()) {
@@ -28,7 +28,8 @@ public class ZooTransactions {
 		}						
 	}
 	
-	@ExoHandler(transactionType=SocketDemoTransactionTypes.GET_ZOO, event=PlatformEvents.messageReceived)
+	@ExoHandler(transactionType=SocketDemoTransactionTypes.GET_ZOO, 
+				events={PlatformEvents.messageReceived})
 	public Zoo getZoo(ExoMessage<?> message, SocketDemoState state) {
 		Zoo zoo = new Zoo();
 		zoo.setLions(state.getLions());

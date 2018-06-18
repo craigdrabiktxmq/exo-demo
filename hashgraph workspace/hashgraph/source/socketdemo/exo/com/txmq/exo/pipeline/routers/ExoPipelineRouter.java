@@ -9,9 +9,7 @@ import com.txmq.exo.pipeline.PipelineStatus;
 import com.txmq.exo.pipeline.PlatformEvents;
 import com.txmq.exo.pipeline.ReportingEvents;
 import com.txmq.exo.pipeline.metadata.ExoHandler;
-import com.txmq.exo.pipeline.metadata.ExoHandlers;
 import com.txmq.exo.pipeline.metadata.ExoSubscriber;
-import com.txmq.exo.pipeline.metadata.ExoSubscribers;
 
 public class ExoPipelineRouter {
 
@@ -87,8 +85,8 @@ public class ExoPipelineRouter {
 		try {
 			Serializable result = this.route(message, state, this.messageReceivedRouter);
 			if (message.isInterrupted()) {
-				this.sendNotification(ReportingEvents.transactionComplete, result, message, this.transactionCompletedRouter);
-			}
+				this.sendNotification(ReportingEvents.transactionComplete, result, message, PipelineStatus.INTERRUPTED);
+			} 
 		} catch (ExoRoutingException e) {
 			/*
 			 * Indicates that something happened during processing that should prevent 
@@ -102,9 +100,13 @@ public class ExoPipelineRouter {
 		System.out.println("Routing " + message.uuid + " to executePreConsensus");
 		try {
 			Serializable result = this.route(message, state, this.executePreConsensusRouter);
+			this.sendNotification(	ReportingEvents.preConsensusResult, 
+									result, 
+									message, 
+									(message.isInterrupted()) ? PipelineStatus.INTERRUPTED : PipelineStatus.OK);
 			if (message.isInterrupted()) {
-				this.sendNotification(ReportingEvents.transactionComplete, result, message, this.transactionCompletedRouter);
-			}
+				this.sendNotification(ReportingEvents.transactionComplete, result, message, PipelineStatus.INTERRUPTED);
+			} 
 		} catch (ExoRoutingException e) {
 			/*
 			 * Indicates that something happened during processing that should prevent 
@@ -118,9 +120,7 @@ public class ExoPipelineRouter {
 		System.out.println("Routing " + message.uuid + " to executeConsensus");
 		try {
 			Serializable result = this.route(message, state, this.executeConsensusRouter);
-			if (message.isInterrupted()) {
-				this.sendNotification(ReportingEvents.transactionComplete, result, message, this.executeConsensusRouter);
-			}
+			this.sendNotification(ReportingEvents.transactionComplete, result, message, PipelineStatus.COMPLETED);
 		} catch (ExoRoutingException e) {
 			/*
 			 * Indicates that something happened during processing that should prevent 
@@ -128,6 +128,10 @@ public class ExoPipelineRouter {
 			 * it directly, it's purpose is simply to short circuit notification.
 			 */
 		}		
+	}
+	
+	public void notifySubmitted(ExoMessage<?> message) {
+		this.sendNotification(ReportingEvents.submitted, null, message, PipelineStatus.OK);
 	}
 	
 	private Serializable route(ExoMessage<?> message, ExoState state, ExoParameterizedRouter<?> router) throws ExoRoutingException {
@@ -142,13 +146,11 @@ public class ExoPipelineRouter {
 			 */
 			
 			message.interrupt();
-			ExoNotification<Exception> notification = 
-					new ExoNotification<Exception>(	ReportingEvents.transactionComplete, 
-							e, 
-							PipelineStatus.ERROR, 
-							message);
+			this.sendNotification(	ReportingEvents.transactionComplete, 
+									e, 
+									message,
+									PipelineStatus.ERROR);
 			
-			this.sendNotification(notification);
 			throw new ExoRoutingException();
 		}	
 		
@@ -158,10 +160,10 @@ public class ExoPipelineRouter {
 	private void sendNotification(	ReportingEvents event, 
 									Serializable payload, 
 									ExoMessage<?> triggeringMessage, 
-									ExoParameterizedRouter<?> router) {
+									PipelineStatus status) {
 		this.sendNotification(	new ExoNotification<Serializable>(	event, 
 																	payload, 
-																	PipelineStatus.ERROR, 
+																	status, 
 																	triggeringMessage)
 		);		
 	}

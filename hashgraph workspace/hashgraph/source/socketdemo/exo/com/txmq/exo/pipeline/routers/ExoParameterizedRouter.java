@@ -4,8 +4,6 @@ import java.io.Serializable;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -16,10 +14,6 @@ import org.reflections.scanners.MethodAnnotationsScanner;
 
 import com.txmq.exo.core.ExoState;
 import com.txmq.exo.messaging.ExoMessage;
-import com.txmq.exo.pipeline.PlatformEvents;
-import com.txmq.exo.pipeline.metadata.ExoHandler;
-import com.txmq.exo.pipeline.metadata.ExoSubscriber;
-import com.txmq.exo.transactionrouter.ExoRouter;
 
 /**
  * Generic router that enables us to "parameterize" the lookup of methods decorated with handler metadata.
@@ -100,7 +94,6 @@ public class ExoParameterizedRouter<E extends Enum<E>> {
 		System.out.println("Adding routes for " + event.name() + " in package " + transactionPackage);
 		int methodsAdded = 0;
 		Reflections reflections = new Reflections(transactionPackage, new MethodAnnotationsScanner());			
-		
 		Set<Method> methods = reflections.getMethodsAnnotatedWith(this.annotationType);
 		for (Method method : methods) {
 			try {
@@ -108,13 +101,15 @@ public class ExoParameterizedRouter<E extends Enum<E>> {
 				
 				for (Annotation methodAnnotation : methodAnnotations) {
 					Method transactionTypeMethod;
-					Method eventTypeMethod;
+					Method eventTypesMethod;
+					
 					try {
 						transactionTypeMethod = methodAnnotation.getClass().getMethod("transactionType");
-						eventTypeMethod = methodAnnotation.getClass().getMethod("event");
+						eventTypesMethod = methodAnnotation.getClass().getMethod("events");
 						
-						if (eventTypeMethod.getReturnType().equals(this.event.getClass())) {
-							if (((E) eventTypeMethod.invoke(methodAnnotation)).equals(this.event)) {
+						E[] eventTypes = (E[]) eventTypesMethod.invoke(methodAnnotation);
+						for (E eventType : eventTypes) {
+							if (eventType.equals(this.event)) {
 								this.transactionMap.put((Integer) transactionTypeMethod.invoke(methodAnnotation), method);
 								methodsAdded++;
 							}
@@ -123,7 +118,7 @@ public class ExoParameterizedRouter<E extends Enum<E>> {
 						e.printStackTrace();
 						throw new IllegalArgumentException(
 								"The annotation " + this.annotationType.getName() + 
-								" must implement a value() method that returns a type of int"
+								" returned an unexpected event type or value"
 						);
 					}
 				}

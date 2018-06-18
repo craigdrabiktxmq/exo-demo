@@ -452,6 +452,7 @@ public class ExoPlatformLocator {
 				testState.handleTransaction(transactionID, true, timeCreated, serializedTransaction, null);
 			} else {
 				platform.createTransaction(serializedTransaction);
+				pipelineRouter.notifySubmitted(transaction);
 			}
 		}
 	}

@@ -10,12 +10,12 @@ import com.txmq.socketdemo.SocketDemoTransactionTypes;
 
 public class ZooRESTSubscriber extends ExoSubscriberBase<AsyncResponse> {
 
-	@ExoSubscriber(transactionType=SocketDemoTransactionTypes.ADD_ANIMAL, event=ReportingEvents.transactionComplete)
+	@ExoSubscriber(transactionType=SocketDemoTransactionTypes.ADD_ANIMAL, events={ReportingEvents.transactionComplete})
 	public void addAnimalTransactionCompleted(ExoNotification<?> notification) {
 		this.getResponder(notification).resume(notification.payload);
 	}
 	
-	@ExoSubscriber(transactionType=SocketDemoTransactionTypes.GET_ZOO, event=ReportingEvents.transactionComplete)
+	@ExoSubscriber(transactionType=SocketDemoTransactionTypes.GET_ZOO, events={ReportingEvents.transactionComplete})
 	public void getZooTransactionCompleted(ExoNotification<?> notification) {
 		this.getResponder(notification).resume(notification.payload);
 	}

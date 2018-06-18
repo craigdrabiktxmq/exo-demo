@@ -27,8 +27,7 @@ import com.txmq.exo.pipeline.PlatformEvents;
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
-@Repeatable(ExoHandlers.class)
 public @interface ExoHandler {
 	int transactionType();
-	PlatformEvents event();
+	PlatformEvents[] events() default {};
 }

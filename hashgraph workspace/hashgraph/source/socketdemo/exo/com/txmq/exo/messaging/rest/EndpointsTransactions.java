@@ -10,7 +10,7 @@ import com.txmq.exo.core.ExoState;
  * Implements the Endpoints API announcement transaction.
  */
 public class EndpointsTransactions {
-	@ExoHandler(transactionType=ExoTransactionType.ANNOUNCE_NODE, event=PlatformEvents.executeConsensus)
+	@ExoHandler(transactionType=ExoTransactionType.ANNOUNCE_NODE, events= {PlatformEvents.executeConsensus})
 	public void announceNode(ExoMessage message, ExoState state, boolean consensus) {
 		state.addEndpoint((String) message.payload);
 	}

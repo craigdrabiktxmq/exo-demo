@@ -25,5 +25,5 @@ import com.txmq.exo.pipeline.ReportingEvents;
 @Target(ElementType.METHOD)
 public @interface ExoSubscriber {
 	int transactionType();
-	ReportingEvents event();
+	ReportingEvents[] events();
 }
