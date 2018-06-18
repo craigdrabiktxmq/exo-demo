@@ -2,8 +2,9 @@
 	"hashgraphConfig": {
 		"transactionTypesClassName": "com.txmq.socketdemo.SocketDemoTransactionTypes",
 		"transactionProcessors": [
-			"com.txmq.exo.messaging.rest",
+			"com.txmq.socketdemo.rest",
 			"com.txmq.socketdemo.transactions",
+			"com.txmq.exo.messaging.rest",
 			"com.txmq.exo.persistence.transactions"
 		],
 		"socketMessaging": {
