@@ -1,7 +1,6 @@
 package com.txmq.exo.pipeline.routers;
 
 import java.io.Serializable;
-import java.util.List;
 
 import com.txmq.exo.core.ExoState;
 import com.txmq.exo.messaging.ExoMessage;
@@ -22,22 +21,22 @@ public class ExoPipelineRouter {
 	 *	Routes messages to methods annotated with @ExoHandler(PlatformEvents.messageReceived).
 	 *	Used to route incoming messages to handlers that read data from state and return it to the client. 
 	 */
-	protected ExoParameterizedRouter<ExoHandlers, PlatformEvents> messageReceivedRouter = 
-			new ExoParameterizedRouter<ExoHandlers, PlatformEvents>(PlatformEvents.messageReceived);
+	protected ExoParameterizedRouter<PlatformEvents> messageReceivedRouter = 
+			new ExoParameterizedRouter<PlatformEvents>(ExoHandler.class, PlatformEvents.messageReceived);
 	
 	/**
 	 *	Routes messages to methods annotated with @ExoHandler(PlatformEvents.executePreConsensus).
 	 *	Used to route incoming messages to handlers that perform validation and processing pre-consensus. 
 	 */
-	protected ExoParameterizedRouter<ExoHandlers, PlatformEvents> executePreConsensusRouter = 
-			new ExoParameterizedRouter<ExoHandlers, PlatformEvents>(PlatformEvents.executePreConsensus);
+	protected ExoParameterizedRouter<PlatformEvents> executePreConsensusRouter = 
+			new ExoParameterizedRouter<PlatformEvents>(ExoHandler.class, PlatformEvents.executePreConsensus);
 	
 	/**
 	 *	Routes messages to methods annotated with @ExoHandler(PlatformEvents.executeConsensus).
 	 *	Used to route incoming messages to handlers that perform validation and processing at consensus. 
 	 */
-	protected ExoParameterizedRouter<ExoHandlers, PlatformEvents> executeConsensusRouter = 
-			new ExoParameterizedRouter<ExoHandlers, PlatformEvents>(PlatformEvents.executeConsensus);
+	protected ExoParameterizedRouter<PlatformEvents> executeConsensusRouter = 
+			new ExoParameterizedRouter<PlatformEvents>(ExoHandler.class, PlatformEvents.executeConsensus);
 	
 	////	Routers for Reporting Events	////
 	
@@ -45,40 +44,41 @@ public class ExoPipelineRouter {
 	 * Routes notifications to methods annotated with @ExoSubscriber(ReportingEvents.submitted).
 	 * Used to notify clients that a transaction has been submitted to the platform.
 	 */
-	protected ExoParameterizedRouter<ExoSubscribers, ReportingEvents> submittedRouter = 
-			new ExoParameterizedRouter<ExoSubscribers, ReportingEvents>(ReportingEvents.submitted);
+	protected ExoParameterizedRouter<ReportingEvents> submittedRouter = 
+			new ExoParameterizedRouter<ReportingEvents>(ExoSubscriber.class, ReportingEvents.submitted);
 	
 	/**
 	 * Routes notifications to methods annotated with @ExoSubscriber(ReportingEvents.preConsensusResult).
 	 * Used to notify clients that processing has occurred pre-consensus.  
 	 */
-	protected ExoParameterizedRouter<ExoSubscribers, ReportingEvents> preConsensusResultRouter = 
-			new ExoParameterizedRouter<ExoSubscribers, ReportingEvents>(ReportingEvents.preConsensusResult);
+	protected ExoParameterizedRouter<ReportingEvents> preConsensusResultRouter = 
+			new ExoParameterizedRouter<ReportingEvents>(ExoSubscriber.class, ReportingEvents.preConsensusResult);
 	
 	/**
 	 * Routes notifications to methods annotated with @ExoSubscriber(ReportingEvents.submitted).
 	 * Used to notify clients that processing has occurred at consensus.
 	 */
-	protected ExoParameterizedRouter<ExoSubscribers, ReportingEvents> consensusResultRouter = 
-			new ExoParameterizedRouter<ExoSubscribers, ReportingEvents>(ReportingEvents.consensusResult);
+	protected ExoParameterizedRouter<ReportingEvents> consensusResultRouter = 
+			new ExoParameterizedRouter<ReportingEvents>(ExoSubscriber.class, ReportingEvents.consensusResult);
 	
 	/**
 	 * Routes notifications to methods annotated with @ExoSubscriber(ReportingEvents.transactionComplete).
 	 * Used to notify clients that transaction processing has completed.
 	 */
-	protected ExoParameterizedRouter<ExoSubscribers, ReportingEvents> transactionCompletedRouter = 
-			new ExoParameterizedRouter<ExoSubscribers, ReportingEvents>(ReportingEvents.transactionComplete);
+	protected ExoParameterizedRouter<ReportingEvents> transactionCompletedRouter = 
+			new ExoParameterizedRouter<ReportingEvents>(ExoSubscriber.class, ReportingEvents.transactionComplete);
 		
 	public void init(String[] packages) {
 		for (String pkg : packages ) {
 			this.messageReceivedRouter.addPackage(pkg);
-			this.executeConsensusRouter.addPackage(pkg);
+			this.executePreConsensusRouter.addPackage(pkg);
 			this.executeConsensusRouter.addPackage(pkg);
 			this.submittedRouter.addPackage(pkg);
 			this.preConsensusResultRouter.addPackage(pkg);
 			this.consensusResultRouter.addPackage(pkg);
 			this.transactionCompletedRouter.addPackage(pkg);
 		}
+		return;
 	}
 	
 	
@@ -101,7 +101,7 @@ public class ExoPipelineRouter {
 	public void routeExecutePreConsensus(ExoMessage<?> message, ExoState state) throws ReflectiveOperationException {
 		System.out.println("Routing " + message.uuid + " to executePreConsensus");
 		try {
-			Serializable result = this.route(message, state, this.executeConsensusRouter);
+			Serializable result = this.route(message, state, this.executePreConsensusRouter);
 			if (message.isInterrupted()) {
 				this.sendNotification(ReportingEvents.transactionComplete, result, message, this.transactionCompletedRouter);
 			}
@@ -117,7 +117,7 @@ public class ExoPipelineRouter {
 	public void routeExecuteConsensus(ExoMessage<?> message, ExoState state) throws ReflectiveOperationException {
 		System.out.println("Routing " + message.uuid + " to executeConsensus");
 		try {
-			Serializable result = this.route(message, state, this.messageReceivedRouter);
+			Serializable result = this.route(message, state, this.executeConsensusRouter);
 			if (message.isInterrupted()) {
 				this.sendNotification(ReportingEvents.transactionComplete, result, message, this.executeConsensusRouter);
 			}
@@ -130,7 +130,7 @@ public class ExoPipelineRouter {
 		}		
 	}
 	
-	private Serializable route(ExoMessage<?> message, ExoState state, ExoParameterizedRouter<?, ?> router) throws ExoRoutingException {
+	private Serializable route(ExoMessage<?> message, ExoState state, ExoParameterizedRouter<?> router) throws ExoRoutingException {
 		Serializable result = null;
 		try {
 			result = router.routeTransaction(message, state);
@@ -158,7 +158,7 @@ public class ExoPipelineRouter {
 	private void sendNotification(	ReportingEvents event, 
 									Serializable payload, 
 									ExoMessage<?> triggeringMessage, 
-									ExoParameterizedRouter<?, ?> router) {
+									ExoParameterizedRouter<?> router) {
 		this.sendNotification(	new ExoNotification<Serializable>(	event, 
 																	payload, 
 																	PipelineStatus.ERROR, 
@@ -169,7 +169,7 @@ public class ExoPipelineRouter {
 	private void sendNotification(ExoNotification<?> notification) {
 		System.out.println("Routing " + notification.triggeringMessage.uuid + " to " + notification.event.toString());
 		
-		ExoParameterizedRouter<ExoSubscribers, ReportingEvents> router = null;
+		ExoParameterizedRouter<ReportingEvents> router = null;
 		switch (notification.event) {
 			case submitted:
 				router = this.submittedRouter;

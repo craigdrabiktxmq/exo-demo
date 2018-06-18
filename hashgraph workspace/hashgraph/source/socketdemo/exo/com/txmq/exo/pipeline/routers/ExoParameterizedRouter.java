@@ -2,7 +2,13 @@ package com.txmq.exo.pipeline.routers;
 
 import java.io.Serializable;
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 
 import org.reflections.Reflections;
@@ -11,6 +17,8 @@ import org.reflections.scanners.MethodAnnotationsScanner;
 import com.txmq.exo.core.ExoState;
 import com.txmq.exo.messaging.ExoMessage;
 import com.txmq.exo.pipeline.PlatformEvents;
+import com.txmq.exo.pipeline.metadata.ExoHandler;
+import com.txmq.exo.pipeline.metadata.ExoSubscriber;
 import com.txmq.exo.transactionrouter.ExoRouter;
 
 /**
@@ -39,12 +47,42 @@ import com.txmq.exo.transactionrouter.ExoRouter;
  * @param <T>
  * @param <E>
  */
-public class ExoParameterizedRouter<T extends Annotation, E extends Enum<E>> extends ExoRouter<T> {
+//public class ExoParameterizedRouter<T extends Annotation, E extends Enum<E>> extends ExoRouter<T> {
+public class ExoParameterizedRouter<E extends Enum<E>> {
 	
 	protected E event;
+	protected Class<? extends Annotation> annotationType;
 	
-	public ExoParameterizedRouter(E event) {
-		super();
+	/**
+	 * Map of transaction type values to the methods that handle them.
+	 */
+	protected Map<Integer, Method> transactionMap;
+
+	/**
+	 * Methods have to be invoked on an instance of an object (unless
+	 * we use static transaction handlers and that makes me feel dirty).
+	 * 
+	 * This map holds instances of each transaction processor class.
+	 * An instance is automatically created if it doesn't exist.
+	 * Transaction processor classes should be written as if they will
+	 * only be instantiated once, and should be careful about any
+	 * state they maintain.  Realize that Exo will probably only ever
+	 * create one instance.
+	 */
+	protected Map<Class<?>, Object> transactionProcessors;
+	
+	/**
+	 * No-op constructor.  ExoTransactionRouter will be instantiated by 
+	 * ExoPlatformLocator and TransactionServer, and managed by the platform.
+	 * 
+	 * Applications should not create instances of ExoTransactionRouter.
+	 * 
+	 * @see com.txmq.exo.core.ExoPlatformLocator
+	 */
+	public ExoParameterizedRouter(Class<? extends Annotation> annotationType, E event) {
+		this.transactionMap = new HashMap<Integer, Method>();
+		this.transactionProcessors = new HashMap<Class<?>, Object>(); 		
+		this.annotationType = annotationType;
 		this.event = event;
 	}
 	
@@ -57,38 +95,70 @@ public class ExoParameterizedRouter<T extends Annotation, E extends Enum<E>> ext
 	 * checking the event value against the value supplied in 
 	 * the constructor before adding the method to the router.
 	 */
-	@Override
-	public ExoRouter<T> addPackage(String transactionPackage) {
+	@SuppressWarnings("unchecked")
+	public ExoParameterizedRouter<E> addPackage(String transactionPackage) {
+		System.out.println("Adding routes for " + event.name() + " in package " + transactionPackage);
+		int methodsAdded = 0;
 		Reflections reflections = new Reflections(transactionPackage, new MethodAnnotationsScanner());			
 		
 		Set<Method> methods = reflections.getMethodsAnnotatedWith(this.annotationType);
 		for (Method method : methods) {
-			@SuppressWarnings("unchecked")
-			T[] methodAnnotations = (T[]) method.getAnnotationsByType(this.annotationType);
-			
-			for (T methodAnnotation : methodAnnotations) {
-				Method transactionTypeMethod;
-				Method eventTypeMethod;
-				try {
-					transactionTypeMethod = this.annotationType.getMethod("transactionType", (Class<?>[]) null);
-					eventTypeMethod = this.annotationType.getMethod("event", (Class<?>[]) null);
-					if (((PlatformEvents) eventTypeMethod.invoke(methodAnnotation)).equals(this.event)) {
-						this.transactionMap.put((Integer) transactionTypeMethod.invoke(methodAnnotation), method);
+			try {
+				Annotation[] methodAnnotations = method.getAnnotationsByType(this.annotationType);
+				
+				for (Annotation methodAnnotation : methodAnnotations) {
+					Method transactionTypeMethod;
+					Method eventTypeMethod;
+					try {
+						transactionTypeMethod = methodAnnotation.getClass().getMethod("transactionType");
+						eventTypeMethod = methodAnnotation.getClass().getMethod("event");
+						
+						if (eventTypeMethod.getReturnType().equals(this.event.getClass())) {
+							if (((E) eventTypeMethod.invoke(methodAnnotation)).equals(this.event)) {
+								this.transactionMap.put((Integer) transactionTypeMethod.invoke(methodAnnotation), method);
+								methodsAdded++;
+							}
+						}
+					} catch (Exception e) {
+						e.printStackTrace();
+						throw new IllegalArgumentException(
+								"The annotation " + this.annotationType.getName() + 
+								" must implement a value() method that returns a type of int"
+						);
 					}
-				} catch (Exception e) {
-					e.printStackTrace();
-					throw new IllegalArgumentException(
-							"The annotation " + this.annotationType.getName() + 
-							" must implement a value() method that returns a type of int"
-					);
 				}
+			} catch (Exception e) {
+				e.printStackTrace();
 			}
 		}
-		
+		System.out.println("Added " + methodsAdded + " routes (" + this.transactionMap.size() + " routes currently registerd)");
 		return this;
 	}
 	
 	public Serializable routeTransaction(ExoMessage<?> message, ExoState state) throws ReflectiveOperationException {
 		return (Serializable) this.invokeHandler(message.transactionType.getValue(), message, state);
+	}
+	
+	protected Object invokeHandler(int key, Object... args) throws ReflectiveOperationException {
+		if (this.transactionMap.containsKey(key)) {
+			Method method = this.transactionMap.get(key);
+			Class<?> processorClass = method.getDeclaringClass();			
+			if (!this.transactionProcessors.containsKey(processorClass)) {
+				Constructor<?> processorConstructor = processorClass.getConstructor();
+				this.transactionProcessors.put(processorClass, processorConstructor.newInstance());				
+			}
+			
+			Object transactionProcessor = this.transactionProcessors.get(processorClass);
+			System.out.println("Invoking " + event.name() + " handler for " + key);
+			
+			//Kind of a "safe hack" - If the length of the args lists differs between 
+			//what we've been passed and what the function expects, just truncate.
+			if (args.length > method.getParameterCount()) {
+				return method.invoke(transactionProcessor, Arrays.copyOfRange(args, 0, method.getParameterCount()));
+			} else {
+				return method.invoke(transactionProcessor, args);
+			}
+		} 
+		return null;
 	}
 }

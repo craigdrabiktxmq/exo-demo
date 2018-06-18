@@ -442,7 +442,7 @@ public class ExoPlatformLocator {
 		}
 		
 		//Process message received handlers
-		pipelineRouter.routeMessageReceived(transaction, getState());
+		pipelineRouter.routeMessageReceived(transaction, preConsensusState);
 		
 		//If the transaction was not interrupted, submit it to the platform
 		if (transaction.isInterrupted() == false) {
