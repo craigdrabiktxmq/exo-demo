@@ -14,6 +14,7 @@ import org.reflections.scanners.MethodAnnotationsScanner;
 
 import com.txmq.exo.core.ExoState;
 import com.txmq.exo.messaging.ExoMessage;
+import com.txmq.exo.pipeline.metadata.ExoNullPayloadType;
 
 /**
  * Generic router that enables us to "parameterize" the lookup of methods decorated with handler metadata.
@@ -66,6 +67,16 @@ public class ExoParameterizedRouter<E extends Enum<E>> {
 	protected Map<Class<?>, Object> transactionProcessors;
 	
 	/**
+	 * A map of transaction type to payload class.  This map is used to deserialize 
+	 * transactions  that have come in through a mechanism where we wouldn't have 
+	 * enough information to deserialize an ExoMessage.  The two obvious uses are 
+	 * when receiving messages through a websocket, and to read in transactions 
+	 * logged to a text file such as in the file-based, in-progress backup to the 
+	 * block logger.
+	 */
+	protected Map<Integer, Class<?>> payloadMap;
+	
+	/**
 	 * No-op constructor.  ExoTransactionRouter will be instantiated by 
 	 * ExoPlatformLocator and TransactionServer, and managed by the platform.
 	 * 
@@ -78,6 +89,7 @@ public class ExoParameterizedRouter<E extends Enum<E>> {
 		this.transactionProcessors = new HashMap<Class<?>, Object>(); 		
 		this.annotationType = annotationType;
 		this.event = event;
+		this.payloadMap = new HashMap<Integer, Class<?>>();
 	}
 	
 	/**
@@ -102,15 +114,27 @@ public class ExoParameterizedRouter<E extends Enum<E>> {
 				for (Annotation methodAnnotation : methodAnnotations) {
 					Method transactionTypeMethod;
 					Method eventTypesMethod;
+					Method payloadTypeMethod;
 					
 					try {
 						transactionTypeMethod = methodAnnotation.getClass().getMethod("transactionType");
 						eventTypesMethod = methodAnnotation.getClass().getMethod("events");
+						payloadTypeMethod = methodAnnotation.getClass().getMethod("payloadClass");
 						
 						E[] eventTypes = (E[]) eventTypesMethod.invoke(methodAnnotation);
 						for (E eventType : eventTypes) {
+							//Add a mapping from this transaction type to its processor 
+							//if the event matches the event this instance tracks.  
 							if (eventType.equals(this.event)) {
-								this.transactionMap.put((Integer) transactionTypeMethod.invoke(methodAnnotation), method);
+								Integer transactionType = (Integer) transactionTypeMethod.invoke(methodAnnotation);
+								this.transactionMap.put(transactionType, method);
+
+								//Add a mapping from transaction type to its payload if the payload isn't empty.
+								//We use ExoNullPayloadType as a placeholder for an empty payload in annotations
+								Class<?> payloadType = (Class<?>) payloadTypeMethod.invoke(methodAnnotation);
+								if (!payloadType.equals(ExoNullPayloadType.class)) {
+									this.payloadMap.put(transactionType, payloadType);
+								}
 								methodsAdded++;
 							}
 						}

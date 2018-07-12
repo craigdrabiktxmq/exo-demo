@@ -8,6 +8,8 @@ import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.UUID;
 
+import com.fasterxml.jackson.annotation.JsonAnySetter;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.txmq.exo.core.ExoPlatformLocator;
 
 /**
@@ -42,6 +44,7 @@ public class ExoMessage<T extends Serializable> implements Serializable {
 	 * The business data associated with this transaction.  
 	 * It can be anything, as long as it's serializable.
 	 */
+	@JsonIgnore
 	public T payload;
 	
 	/**
@@ -136,4 +139,9 @@ public class ExoMessage<T extends Serializable> implements Serializable {
 		
 		return result;
 	}
+	
+	@JsonAnySetter
+	public void genericSetter(String key, String value) {
+		return;
+	}	
 }

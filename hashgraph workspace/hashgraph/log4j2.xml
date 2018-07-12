@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="INFO">
+    <Appenders>
+        # Console appender
+        <Console name="stdout" target="SYSTEM_OUT">
+            # Pattern of log message for console appender
+            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss} %p %m%n"/>
+        </Console>
+
+        # Rolling appender
+        <RollingFile name="roll-by-size"
+            fileName="./logs/application.log" filePattern="./logs/application.%i.log.gz"
+            ignoreExceptions="false">
+            <PatternLayout>
+                <Pattern>%d{yyyy-MM-dd HH:mm:ss} %p %m%n</Pattern>
+            </PatternLayout>
+            <Policies>
+                <OnStartupTriggeringPolicy/>
+                <SizeBasedTriggeringPolicy
+                    size="500 KB"/>
+            </Policies>
+        </RollingFile>
+    </Appenders>
+
+    <Loggers>
+        # Override log level for specified package
+        <Logger name="SocketDemoMain" level="TRACE" />      
+        <Logger name="org.atmosphere" level="TRACE"/>
+        <Logger name="org.atmosphere.cpr.AtmosphereResourceEventListenerAdapter" level="INFO"/>
+        <Logger name="org.atmosphere.cpr.AtmosphereResourceEventListener" level="INFO"/>
+
+        <Logger name="org.atmosphere.cpr.AtmosphereResourceImpl" level="DEBUG"/>
+        <Logger name="org.atmosphere.cpr.AsyncSupportListenerAdapter" level="INFO"/>
+        <AsyncRoot level="WARN">
+            <AppenderRef ref="stdout"/>
+            <AppenderRef ref="roll-by-size"/>
+        </AsyncRoot>
+    </Loggers>
+</Configuration>

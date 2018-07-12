@@ -5,13 +5,13 @@ import java.io.Serializable;
 import com.txmq.exo.messaging.ExoMessage;
 import com.txmq.exo.messaging.socket.ExoMessageHandler;
 import com.txmq.socketdemo.SocketDemoState;
-import com.txmq.socketdemo.SocketDemoTransactionTypes;
+import com.txmq.socketdemo.ZooDemoTransactionTypes;
 
 import io.swagger.model.Zoo;
 
 public class ZooSocketApi {
 
-	@ExoMessageHandler(SocketDemoTransactionTypes.GET_ZOO)
+	@ExoMessageHandler(ZooDemoTransactionTypes.GET_ZOO)
 	public Serializable getZoo(ExoMessage<?> message, SocketDemoState state) {
 		Zoo result = new Zoo();
 		result.lions(state.getLions());

@@ -6,16 +6,16 @@ import com.txmq.exo.messaging.ExoNotification;
 import com.txmq.exo.pipeline.ReportingEvents;
 import com.txmq.exo.pipeline.metadata.ExoSubscriber;
 import com.txmq.exo.pipeline.subscribers.ExoSubscriberBase;
-import com.txmq.socketdemo.SocketDemoTransactionTypes;
+import com.txmq.socketdemo.ZooDemoTransactionTypes;
 
 public class ZooRESTSubscriber extends ExoSubscriberBase<AsyncResponse> {
 
-	@ExoSubscriber(transactionType=SocketDemoTransactionTypes.ADD_ANIMAL, events={ReportingEvents.transactionComplete})
+	@ExoSubscriber(transactionType=ZooDemoTransactionTypes.ADD_ANIMAL, events={ReportingEvents.transactionComplete})
 	public void addAnimalTransactionCompleted(ExoNotification<?> notification) {
 		this.getResponder(notification).resume(notification.payload);
 	}
 	
-	@ExoSubscriber(transactionType=SocketDemoTransactionTypes.GET_ZOO, events={ReportingEvents.transactionComplete})
+	@ExoSubscriber(transactionType=ZooDemoTransactionTypes.GET_ZOO, events={ReportingEvents.transactionComplete})
 	public void getZooTransactionCompleted(ExoNotification<?> notification) {
 		this.getResponder(notification).resume(notification.payload);
 	}

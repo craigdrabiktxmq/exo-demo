@@ -18,3 +18,4 @@ FROM nginx
 COPY nginx.conf /etc/nginx/nginx.conf
 RUN rm -rf /usr/share/nginx/html/*
 COPY --from=builder /home/node/app/dist /usr/share/nginx/html
+COPY wsclient /usr/share/nginx/html

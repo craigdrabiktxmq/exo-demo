@@ -37,10 +37,20 @@
   		<groupId>org.glassfish.jersey.containers</groupId>
   		<artifactId>jersey-container-grizzly2-http</artifactId>
   	</dependency>
-  	  	<dependency>
+  	<dependency>
 	     <groupId>org.glassfish.grizzly</groupId>
 	     <artifactId>grizzly-http-server-multipart</artifactId>
 	     <version>2.4.0</version>
+	</dependency>
+	<dependency>
+     <groupId>org.glassfish.grizzly</groupId>
+     <artifactId>grizzly-http-servlet</artifactId>
+     <version>2.4.0</version>
+	</dependency>
+	<dependency>
+     <groupId>org.glassfish.grizzly</groupId>
+     <artifactId>grizzly-websockets</artifactId>
+     <version>2.4.0</version>
 	</dependency>
   	<dependency>
 	    <groupId>org.glassfish.jersey.media</groupId>
@@ -52,6 +62,21 @@
   		<artifactId>jersey-media-json-jackson</artifactId>
   	</dependency>
   	<dependency>
+        <groupId>javax.servlet</groupId>
+        <artifactId>javax.servlet-api</artifactId>
+        <version>3.1.0</version>
+    </dependency>
+    <dependency>
+        <groupId>javax</groupId>
+        <artifactId>javaee-web-api</artifactId>
+        <version>8.0</version>
+    </dependency><!-- 
+    <dependency>
+         <groupId>org.atmosphere</groupId>
+         <artifactId>atmosphere-runtime</artifactId>
+         <version>2.4.26</version>
+      </dependency> -->
+      <dependency>
 	  <groupId>org.lightcouch</groupId>
 	  <artifactId>lightcouch</artifactId>
 	  <version>0.2.0</version>
@@ -61,6 +86,21 @@
 	    <artifactId>reflections</artifactId>
 	    <version>0.9.9</version>
 	</dependency>
+	<dependency>
+	    <groupId>com.lmax</groupId>
+	    <artifactId>disruptor</artifactId>
+	    <version>3.3.6</version>
+	</dependency>
+    <dependency>
+     <groupId>org.apache.logging.log4j</groupId>
+     <artifactId>log4j-api</artifactId>
+     <version>2.7</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-core</artifactId>
+      <version>2.7</version>
+    </dependency>
   </dependencies>
   <build>
   	<plugins>

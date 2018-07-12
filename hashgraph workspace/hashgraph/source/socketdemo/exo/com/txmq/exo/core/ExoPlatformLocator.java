@@ -13,8 +13,11 @@ import javax.ws.rs.core.UriBuilder;
 
 import org.glassfish.grizzly.GrizzlyFuture;
 import org.glassfish.grizzly.http.server.HttpServer;
+import org.glassfish.grizzly.http.server.NetworkListener;
 import org.glassfish.grizzly.ssl.SSLContextConfigurator;
 import org.glassfish.grizzly.ssl.SSLEngineConfigurator;
+import org.glassfish.grizzly.websockets.WebSocketAddOn;
+import org.glassfish.grizzly.websockets.WebSocketEngine;
 import org.glassfish.jersey.grizzly2.httpserver.GrizzlyHttpServerFactory;
 import org.glassfish.jersey.jackson.JacksonFeature;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
@@ -28,6 +31,7 @@ import com.txmq.exo.messaging.ExoMessage;
 import com.txmq.exo.messaging.ExoTransactionType;
 import com.txmq.exo.messaging.rest.CORSFilter;
 import com.txmq.exo.messaging.socket.TransactionServer;
+import com.txmq.exo.messaging.websocket.grizzly.ExoWebSocketApplication;
 import com.txmq.exo.persistence.BlockLogger;
 import com.txmq.exo.persistence.IBlockLogger;
 import com.txmq.exo.pipeline.routers.ExoPipelineRouter;
@@ -330,6 +334,32 @@ public class ExoPlatformLocator {
 			);
 		} else {
 			grizzly = GrizzlyHttpServerFactory.createHttpServer(baseUri, config);
+		}
+		
+		//TEST:  Add atmosphere test component
+		baseUri = UriBuilder.fromUri("http://0.0.0.0").port(8080).build();
+		config = new ResourceConfig()
+				.packages("com.txmq.exo.messaging.atmosphere");
+		
+		System.out.println("Starting Grizzly");
+		try {
+			grizzly.start();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		HttpServer wsServer = HttpServer.createSimpleServer(".", restConfig.port + 1000);
+		final WebSocketAddOn addon = new WebSocketAddOn();
+		for (NetworkListener listener : wsServer.getListeners()) {
+			listener.registerAddOn(addon);
+		}
+		WebSocketEngine.getEngine().register("", "/wstest", new ExoWebSocketApplication());
+		
+		try {
+			wsServer.start();
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
 		
 		//Track Grizzly instances so they can be shut down later

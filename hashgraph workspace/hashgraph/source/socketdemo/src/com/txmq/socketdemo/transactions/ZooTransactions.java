@@ -4,17 +4,19 @@ import com.txmq.exo.messaging.ExoMessage;
 import com.txmq.exo.pipeline.PlatformEvents;
 import com.txmq.exo.pipeline.metadata.ExoHandler;
 import com.txmq.socketdemo.SocketDemoState;
-import com.txmq.socketdemo.SocketDemoTransactionTypes;
+import com.txmq.socketdemo.ZooDemoTransactionTypes;
 
 import io.swagger.model.Animal;
 import io.swagger.model.Zoo;
 
 public class ZooTransactions {
 
-	@ExoHandler(transactionType=SocketDemoTransactionTypes.ADD_ANIMAL, 
-				events={PlatformEvents.executePreConsensus, PlatformEvents.executeConsensus})
-	public void addAnimal(ExoMessage<?> message, SocketDemoState state) {
-		Animal animal = (Animal) message.payload;
+	@ExoHandler(transactionType=ZooDemoTransactionTypes.ADD_ANIMAL, 
+				events={PlatformEvents.executePreConsensus, PlatformEvents.executeConsensus},
+				payloadClass=Animal.class)
+	public void addAnimal(ExoMessage<Animal> message, SocketDemoState state) {
+		//todo:  improve this so that we're testing if an animal of the same name exists, and failing if so 
+		Animal animal = message.payload;
 		switch (animal.getSpecies()) {
 			case "lion":
 				state.addLion(animal.getName());
@@ -28,7 +30,7 @@ public class ZooTransactions {
 		}						
 	}
 	
-	@ExoHandler(transactionType=SocketDemoTransactionTypes.GET_ZOO, 
+	@ExoHandler(transactionType=ZooDemoTransactionTypes.GET_ZOO, 
 				events={PlatformEvents.messageReceived})
 	public Zoo getZoo(ExoMessage<?> message, SocketDemoState state) {
 		Zoo zoo = new Zoo();
