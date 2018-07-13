@@ -45,7 +45,7 @@ export class WebsocketComponent implements OnInit, OnDestroy {
       
         case 2: //ADD_ANIMAL
           if (item.triggeringMessage.uuid == this.currentTransactionID) {
-            this.currentTransactionID = null;
+            this.reset();
             this.getZoo();
           } 
           break;
@@ -83,5 +83,11 @@ export class WebsocketComponent implements OnInit, OnDestroy {
     };
     this.currentTransactionID = addAnimalRequest.uuid;
     this.zooWebSocketService.zooSubject.next(addAnimalRequest);
+  }
+
+  private reset(): void {
+    this.currentTransactionID = null;
+    this.animalName = '';
+    this.animalSpecies = null;
   }
 }
