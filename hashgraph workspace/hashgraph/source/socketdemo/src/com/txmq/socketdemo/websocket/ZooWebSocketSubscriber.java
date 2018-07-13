@@ -1,5 +1,6 @@
 package com.txmq.socketdemo.websocket;
 
+import com.txmq.exo.core.ExoPlatformLocator;
 import com.txmq.exo.messaging.ExoNotification;
 import com.txmq.exo.pipeline.ReportingEvents;
 import com.txmq.exo.pipeline.metadata.ExoSubscriber;
@@ -22,6 +23,17 @@ public class ZooWebSocketSubscriber extends ExoWebSocketSubscriber {
 								ReportingEvents.consensusResult, 
 								ReportingEvents.transactionComplete	})
 	public void addAnimalTransactionProgress(ExoNotification<?> notification) {
+		String myName = ExoPlatformLocator.getState().getMyName();
+		System.out.println("Sending notification from " + myName);
 		this.sendNotification(notification);
 	}
+	
+	@ExoSubscriber(	transactionType=ZooDemoTransactionTypes.GET_ZOO, events={ReportingEvents.transactionComplete})
+	public void getZooTransactionProgress(ExoNotification<?> notification) {
+		String myName = ExoPlatformLocator.getState().getMyName();
+		System.out.println("Sending notification from " + myName);
+		this.sendNotification(notification);
+	}
+
+
 }

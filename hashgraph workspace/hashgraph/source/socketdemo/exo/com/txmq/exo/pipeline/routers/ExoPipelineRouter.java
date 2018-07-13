@@ -3,11 +3,13 @@ package com.txmq.exo.pipeline.routers;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import com.txmq.exo.core.ExoState;
 import com.txmq.exo.messaging.ExoMessage;
 import com.txmq.exo.messaging.ExoNotification;
+import com.txmq.exo.messaging.ExoTransactionType;
 import com.txmq.exo.pipeline.PipelineStatus;
 import com.txmq.exo.pipeline.PlatformEvents;
 import com.txmq.exo.pipeline.ReportingEvents;
@@ -72,15 +74,7 @@ public class ExoPipelineRouter {
 	protected ExoParameterizedRouter<ReportingEvents> transactionCompletedRouter = 
 			new ExoParameterizedRouter<ReportingEvents>(ExoSubscriber.class, ReportingEvents.transactionComplete);
 	
-	/**
-	 * A map of transaction type to payload class.  This map is used to deserialize 
-	 * transactions  that have come in through a mechanism where we wouldn't have 
-	 * enough information to deserialize an ExoMessage.  The two obvious uses are 
-	 * when receiving messages through a websocket, and to read in transactions 
-	 * logged to a text file such as in the file-based, in-progress backup to the 
-	 * block logger.
-	 */
-	protected Map<Integer, Class<?>> payloadMap;
+	
 	
 	public void init(String[] packages) {
 		for (String pkg : packages ) {
@@ -91,21 +85,29 @@ public class ExoPipelineRouter {
 			this.preConsensusResultRouter.addPackage(pkg);
 			this.consensusResultRouter.addPackage(pkg);
 			this.transactionCompletedRouter.addPackage(pkg);
-		}
-		
-		//Now that packages have all been processed, we can aggregate their payload maps
-		this.payloadMap = new HashMap<Integer, Class<?>>();
-		this.addPayloadMap(this.messageReceivedRouter);
-		this.addPayloadMap(this.executePreConsensusRouter);
-		this.addPayloadMap(this.executeConsensusRouter);		
+		}		
 	}
 	
-	public Class<?> getPayloadClassForTransactionType(Integer transactionType) {
-		if (this.payloadMap.containsKey(transactionType)) {
-			return this.payloadMap.get(transactionType);
-		} else {
-			return null;
+	public List<ReportingEvents> getRegisteredNotificationsForTransactionType(ExoTransactionType transactionType) {
+		List<ReportingEvents> registeredEvents = new ArrayList<ReportingEvents>();
+		
+		if (this.submittedRouter.hasRouteForTransactionType(transactionType)) {
+			registeredEvents.add(ReportingEvents.submitted);			
 		}
+		
+		if (this.preConsensusResultRouter.hasRouteForTransactionType(transactionType)) {
+			registeredEvents.add(ReportingEvents.preConsensusResult);			
+		}
+		
+		if (this.consensusResultRouter.hasRouteForTransactionType(transactionType)) {
+			registeredEvents.add(ReportingEvents.consensusResult);			
+		}
+		
+		if (this.transactionCompletedRouter.hasRouteForTransactionType(transactionType)) {
+			registeredEvents.add(ReportingEvents.transactionComplete);			
+		}
+		
+		return registeredEvents;
 	}
 	
 	public void routeMessageReceived(ExoMessage<?> message, ExoState state) {
@@ -148,6 +150,10 @@ public class ExoPipelineRouter {
 		//System.out.println("Routing " + message.uuid + " to executeConsensus");
 		try {
 			Serializable result = this.route(message, state, this.executeConsensusRouter);
+			this.sendNotification(	ReportingEvents.consensusResult, 
+					result, 
+					message, 
+					(message.isInterrupted()) ? PipelineStatus.INTERRUPTED : PipelineStatus.OK);
 			this.sendNotification(ReportingEvents.transactionComplete, result, message, PipelineStatus.COMPLETED);
 		} catch (ExoRoutingException e) {
 			/*
@@ -229,12 +235,6 @@ public class ExoPipelineRouter {
 			if (notification.event.equals(ReportingEvents.transactionComplete)) {
 				this.subscriberManager.removeResponder(notification);
 			}
-		}
-	}
-	
-	private void addPayloadMap(ExoParameterizedRouter<?> router) {
-		for (Integer key : router.payloadMap.keySet()) {
-			this.payloadMap.put(key, router.payloadMap.get(key));
 		}
 	}
 }

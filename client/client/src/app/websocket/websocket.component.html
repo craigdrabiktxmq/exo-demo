@@ -1,0 +1,67 @@
+<mat-card>
+  <mat-card-header>
+    <mat-card-title>WebSocket Messages</mat-card-title>
+  </mat-card-header>
+  <mat-card-content>  
+    <div class="table-container">      
+      <div class="table">
+        <div class="message-header">
+          <div class="table-header">Time</div>
+          <div class="table-header">ID</div>
+          <div class="table-header">Event</div>
+        </div>
+        <div *ngFor="let message of messages" class="message-row">
+          <div class="table-cell">{{message.localTimestamp | date: 'HH:mm:ss.SSS'}}</div>
+          <div class="table-cell" >{{message.uuid}}</div>
+          <div class="table-cell" >{{message.event}}</div>      
+        </div>
+      </div>
+    </div>  
+  </mat-card-content>
+</mat-card>
+<mat-card>
+  <mat-card-header>
+    <mat-card-title>Add an animal to the zoo</mat-card-title>
+  </mat-card-header>
+  <mat-card-content>
+  
+    <div fxLayout="row">
+      <div fxFlex class="field-container">
+        <mat-form-field>
+            <mat-select placeholder="Species" [(value)]="animalSpecies">
+              <mat-option value="lion">Lion</mat-option>
+              <mat-option value="tiger">Tiger</mat-option>
+              <mat-option value="bear">Bear</mat-option>        
+            </mat-select>
+          </mat-form-field>
+      </div>
+      <div fxFlex class="field-container">
+        <mat-form-field>
+          <input matInput placeholder="Name" [value]="animalName" (input)="animalName = $event.target.value">
+        </mat-form-field>
+      </div>
+    </div>
+    <button mat-raised-button color="primary" (click)="addAnimal()">Add</button>
+  </mat-card-content>
+</mat-card>
+<mat-card *ngIf="zoo">
+  <mat-card-header>
+    <mat-card-title>Animals in the Zoo</mat-card-title>
+  </mat-card-header>
+  <mat-card-content>
+    <div fxLayout="row">
+      <div fxFlex>
+        <h3>Lions</h3>
+        <div *ngFor="let lion of zoo.lions">{{lion}}</div>
+      </div>
+      <div fxFlex>
+        <h3>Tigers</h3>
+        <div *ngFor="let tiger of zoo.tigers">{{tiger}}</div>
+      </div>
+      <div fxFlex>
+        <h3>Bears</h3>
+        <div *ngFor="let bear of zoo.bears">{{bear}}</div>
+      </div>
+    </div>
+  </mat-card-content>
+</mat-card>

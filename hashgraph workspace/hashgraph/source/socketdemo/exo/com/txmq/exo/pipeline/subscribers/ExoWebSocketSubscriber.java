@@ -11,6 +11,10 @@ public class ExoWebSocketSubscriber extends ExoSubscriberBase<WebSocket> {
 
 	protected void sendNotification(ExoNotification<?> notification) {
 		WebSocket ws = this.getResponder(notification);
+		if (ws == null) {
+			return;
+		}
+		
 		ObjectMapper mapper = new ObjectMapper();
 		String message = null;
 		try {

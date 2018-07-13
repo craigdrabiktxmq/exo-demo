@@ -4,8 +4,10 @@ import java.io.Serializable;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -14,6 +16,8 @@ import org.reflections.scanners.MethodAnnotationsScanner;
 
 import com.txmq.exo.core.ExoState;
 import com.txmq.exo.messaging.ExoMessage;
+import com.txmq.exo.messaging.ExoTransactionType;
+import com.txmq.exo.messaging.websocket.grizzly.ExoMessageJsonParser;
 import com.txmq.exo.pipeline.metadata.ExoNullPayloadType;
 
 /**
@@ -51,7 +55,7 @@ public class ExoParameterizedRouter<E extends Enum<E>> {
 	/**
 	 * Map of transaction type values to the methods that handle them.
 	 */
-	protected Map<Integer, Method> transactionMap;
+	protected Map<Integer, List<Method>> transactionMap;
 
 	/**
 	 * Methods have to be invoked on an instance of an object (unless
@@ -67,16 +71,6 @@ public class ExoParameterizedRouter<E extends Enum<E>> {
 	protected Map<Class<?>, Object> transactionProcessors;
 	
 	/**
-	 * A map of transaction type to payload class.  This map is used to deserialize 
-	 * transactions  that have come in through a mechanism where we wouldn't have 
-	 * enough information to deserialize an ExoMessage.  The two obvious uses are 
-	 * when receiving messages through a websocket, and to read in transactions 
-	 * logged to a text file such as in the file-based, in-progress backup to the 
-	 * block logger.
-	 */
-	protected Map<Integer, Class<?>> payloadMap;
-	
-	/**
 	 * No-op constructor.  ExoTransactionRouter will be instantiated by 
 	 * ExoPlatformLocator and TransactionServer, and managed by the platform.
 	 * 
@@ -85,11 +79,10 @@ public class ExoParameterizedRouter<E extends Enum<E>> {
 	 * @see com.txmq.exo.core.ExoPlatformLocator
 	 */
 	public ExoParameterizedRouter(Class<? extends Annotation> annotationType, E event) {
-		this.transactionMap = new HashMap<Integer, Method>();
+		this.transactionMap = new HashMap<Integer, List<Method>>();
 		this.transactionProcessors = new HashMap<Class<?>, Object>(); 		
 		this.annotationType = annotationType;
-		this.event = event;
-		this.payloadMap = new HashMap<Integer, Class<?>>();
+		this.event = event;		
 	}
 	
 	/**
@@ -104,7 +97,6 @@ public class ExoParameterizedRouter<E extends Enum<E>> {
 	@SuppressWarnings("unchecked")
 	public ExoParameterizedRouter<E> addPackage(String transactionPackage) {
 		System.out.println("Adding routes for " + event.name() + " in package " + transactionPackage);
-		int methodsAdded = 0;
 		Reflections reflections = new Reflections(transactionPackage, new MethodAnnotationsScanner());			
 		Set<Method> methods = reflections.getMethodsAnnotatedWith(this.annotationType);
 		for (Method method : methods) {
@@ -119,7 +111,13 @@ public class ExoParameterizedRouter<E extends Enum<E>> {
 					try {
 						transactionTypeMethod = methodAnnotation.getClass().getMethod("transactionType");
 						eventTypesMethod = methodAnnotation.getClass().getMethod("events");
-						payloadTypeMethod = methodAnnotation.getClass().getMethod("payloadClass");
+						payloadTypeMethod = null;
+						
+						try {
+							payloadTypeMethod = methodAnnotation.getClass().getMethod("payloadClass");
+						} catch (NoSuchMethodException e) {
+							//No problem, we check for nulls later on
+						}
 						
 						E[] eventTypes = (E[]) eventTypesMethod.invoke(methodAnnotation);
 						for (E eventType : eventTypes) {
@@ -127,15 +125,19 @@ public class ExoParameterizedRouter<E extends Enum<E>> {
 							//if the event matches the event this instance tracks.  
 							if (eventType.equals(this.event)) {
 								Integer transactionType = (Integer) transactionTypeMethod.invoke(methodAnnotation);
-								this.transactionMap.put(transactionType, method);
+								if (!this.transactionMap.containsKey(transactionType)) {
+									this.transactionMap.put(transactionType, new ArrayList<Method>());
+								}
+								this.transactionMap.get(transactionType).add(method);
 
 								//Add a mapping from transaction type to its payload if the payload isn't empty.
 								//We use ExoNullPayloadType as a placeholder for an empty payload in annotations
-								Class<?> payloadType = (Class<?>) payloadTypeMethod.invoke(methodAnnotation);
-								if (!payloadType.equals(ExoNullPayloadType.class)) {
-									this.payloadMap.put(transactionType, payloadType);
+								if (payloadTypeMethod != null) {
+									Class<?> payloadType = (Class<?>) payloadTypeMethod.invoke(methodAnnotation);
+									if (!payloadType.equals(ExoNullPayloadType.class)) {
+										ExoMessageJsonParser.registerPayloadType(transactionType, payloadType);
+									}
 								}
-								methodsAdded++;
 							}
 						}
 					} catch (Exception e) {
@@ -150,34 +152,46 @@ public class ExoParameterizedRouter<E extends Enum<E>> {
 				e.printStackTrace();
 			}
 		}
-		System.out.println("Added " + methodsAdded + " routes (" + this.transactionMap.size() + " routes currently registerd)");
 		return this;
 	}
 	
 	public Serializable routeTransaction(ExoMessage<?> message, ExoState state) throws ReflectiveOperationException {
-		return (Serializable) this.invokeHandler(message.transactionType.getValue(), message, state);
+		return this.invokeHandler(message.transactionType.getValue(), message, state);
 	}
 	
-	protected Object invokeHandler(int key, Object... args) throws ReflectiveOperationException {
+	public boolean hasRouteForTransactionType(ExoTransactionType transactionType) {
+		return this.transactionMap.containsKey(transactionType.getValue());
+	}
+	
+	protected Serializable invokeHandler(int key, Object... args) throws ReflectiveOperationException {
+		Serializable result = null;;
 		if (this.transactionMap.containsKey(key)) {
-			Method method = this.transactionMap.get(key);
-			Class<?> processorClass = method.getDeclaringClass();			
-			if (!this.transactionProcessors.containsKey(processorClass)) {
-				Constructor<?> processorConstructor = processorClass.getConstructor();
-				this.transactionProcessors.put(processorClass, processorConstructor.newInstance());				
-			}
-			
-			Object transactionProcessor = this.transactionProcessors.get(processorClass);
-			System.out.println("Invoking " + event.name() + " handler for " + key);
-			
-			//Kind of a "safe hack" - If the length of the args lists differs between 
-			//what we've been passed and what the function expects, just truncate.
-			if (args.length > method.getParameterCount()) {
-				return method.invoke(transactionProcessor, Arrays.copyOfRange(args, 0, method.getParameterCount()));
-			} else {
-				return method.invoke(transactionProcessor, args);
+			List<Method> methods = this.transactionMap.get(key); 
+			for (Method method : methods) { 
+				Class<?> processorClass = method.getDeclaringClass();			
+				if (!this.transactionProcessors.containsKey(processorClass)) {
+					Constructor<?> processorConstructor = processorClass.getConstructor();
+					this.transactionProcessors.put(processorClass, processorConstructor.newInstance());				
+				}
+				
+				Object transactionProcessor = this.transactionProcessors.get(processorClass);
+				System.out.println("Invoking " + event.name() + " handler for " + key);
+				
+				//Kind of a "safe hack" - If the length of the args lists differs between 
+				//what we've been passed and what the function expects, just truncate.
+				if (args.length > method.getParameterCount()) {
+					/*
+					 * Also kind of a "safe hack"..  We should only have one handler (processor) for platform events, 
+					 * while notifications may have multiple handlers, but we don't care about the results of those 
+					 * handlers.  Thus, it's safe to just return the last value we get from a processor.  It'll either 
+					 * be the only one, or irrelevant.
+					 */
+					result = (Serializable) method.invoke(transactionProcessor, Arrays.copyOfRange(args, 0, method.getParameterCount()));
+				} else {
+					result = (Serializable) method.invoke(transactionProcessor, args);
+				}
 			}
 		} 
-		return null;
+		return result;
 	}
 }

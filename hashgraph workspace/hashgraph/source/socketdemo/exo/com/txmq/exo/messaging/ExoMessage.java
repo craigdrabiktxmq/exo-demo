@@ -44,7 +44,6 @@ public class ExoMessage<T extends Serializable> implements Serializable {
 	 * The business data associated with this transaction.  
 	 * It can be anything, as long as it's serializable.
 	 */
-	@JsonIgnore
 	public T payload;
 	
 	/**
@@ -138,10 +137,5 @@ public class ExoMessage<T extends Serializable> implements Serializable {
 		o.close();
 		
 		return result;
-	}
-	
-	@JsonAnySetter
-	public void genericSetter(String key, String value) {
-		return;
 	}	
 }

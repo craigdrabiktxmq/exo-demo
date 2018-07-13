@@ -8,15 +8,22 @@ import com.txmq.exo.pipeline.metadata.ExoSubscriber;
 import com.txmq.exo.pipeline.subscribers.ExoSubscriberBase;
 import com.txmq.socketdemo.ZooDemoTransactionTypes;
 
+//TODO:  Add a method for just stuffing the payload into the pipe, eliminate boilerplate yo! 
 public class ZooRESTSubscriber extends ExoSubscriberBase<AsyncResponse> {
 
 	@ExoSubscriber(transactionType=ZooDemoTransactionTypes.ADD_ANIMAL, events={ReportingEvents.transactionComplete})
 	public void addAnimalTransactionCompleted(ExoNotification<?> notification) {
-		this.getResponder(notification).resume(notification.payload);
+		AsyncResponse responder = this.getResponder(notification);
+		if (responder != null) {
+			responder.resume(notification.payload);
+		}
 	}
 	
 	@ExoSubscriber(transactionType=ZooDemoTransactionTypes.GET_ZOO, events={ReportingEvents.transactionComplete})
 	public void getZooTransactionCompleted(ExoNotification<?> notification) {
-		this.getResponder(notification).resume(notification.payload);
+		AsyncResponse responder = this.getResponder(notification);
+		if (responder != null) {
+			responder.resume(notification.payload);
+		}
 	}
 }

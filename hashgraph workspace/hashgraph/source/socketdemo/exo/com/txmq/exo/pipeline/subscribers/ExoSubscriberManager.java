@@ -10,6 +10,7 @@ import java.util.UUID;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 
+import com.txmq.exo.core.ExoPlatformLocator;
 import com.txmq.exo.messaging.ExoMessage;
 import com.txmq.exo.messaging.ExoNotification;
 import com.txmq.exo.pipeline.ReportingEvents;
@@ -39,7 +40,10 @@ public class ExoSubscriberManager {
 		}
 	}
 	
-	public synchronized void registerResponder(ExoMessage<?> message, ReportingEvents event, Object responderInstance) {		
+	public synchronized void registerResponder(ExoMessage<?> message, ReportingEvents event, Object responderInstance) {	
+		String myName = ExoPlatformLocator.getState().getMyName();
+		System.out.println("Registering responder from " + myName);
+		
 		responders.get(event).put(message.uuid, responderInstance);
 		
 		if (!responderLookups.containsKey(responderInstance)) {
@@ -47,6 +51,17 @@ public class ExoSubscriberManager {
 		}
 		
 		responderLookups.get(responderInstance).add(new ResponderLookup(event, message.uuid));
+	}
+	
+	public synchronized void registerAllAvailableResponders(ExoMessage<?> message, Object responderInstance) {
+		List<ReportingEvents> events = ExoPlatformLocator
+				.getTransactionRouter()
+				.getRegisteredNotificationsForTransactionType(message.transactionType);
+		
+		for (ReportingEvents event : events) {
+			this.registerResponder(message, event, responderInstance);
+		}
+		
 	}
 	
 	public synchronized Object getResponder(ExoNotification<?> notification) {

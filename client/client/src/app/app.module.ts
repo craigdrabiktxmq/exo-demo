@@ -10,9 +10,12 @@ import { ApiModule, DefaultService } from '../api/index';
 import { FormsModule } from '@angular/forms';
 import { ExoModule } from './exo/exo.module';
 import { ExoConfig } from './exo/exo-config';
+import { WebsocketComponent } from './websocket/websocket.component';
+import { ZooWebsocketService } from './zoo-websocket.service';
 
 const appRoutes: Routes = [
   { path: 'home', component: HomeComponent },
+  { path: 'websocket', component: WebsocketComponent},
   { path: '**', redirectTo: '/home' }
 ];
 
@@ -33,7 +36,8 @@ const exoConfig:ExoConfig = {
 @NgModule({
   declarations: [
     AppComponent,
-    HomeComponent
+    HomeComponent,
+    WebsocketComponent
   ],
   imports: [
     RouterModule.forRoot(appRoutes),
@@ -50,7 +54,7 @@ const exoConfig:ExoConfig = {
     FlexLayoutModule,
     ExoModule.forRoot(exoConfig)
   ],
-  providers: [DefaultService],
+  providers: [DefaultService, ZooWebsocketService],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

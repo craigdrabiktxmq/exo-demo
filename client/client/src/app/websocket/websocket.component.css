@@ -1,0 +1,33 @@
+.table-container {
+    max-height: 250px;
+    overflow-y: scroll;
+}
+
+.table {
+    display: table;
+}
+
+.message-row, .message-header {
+    display: table-row;
+}
+
+.message-header {
+    border-bottom: 1px solid #666;
+}
+
+
+.table-cell, .table-header {
+    display: table-cell;    
+    padding: 2px 8px;
+}
+.table-header {
+    color: #666;
+}
+
+.table-cell:first-child {
+    padding-left: 0;
+}
+
+.table-cell:last-child {
+    padding-right: 0;
+}
