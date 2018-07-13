@@ -22,6 +22,9 @@ export class WebsocketComponent implements OnInit, OnDestroy {
   private zoo: any;
   private subscription: Subscription;
 
+  private getZooTimeout: number;
+  private paused = false;
+
   constructor(private zooWebSocketService: ZooWebsocketService,
               private dialogService: MatDialog) { }
 
@@ -61,6 +64,10 @@ export class WebsocketComponent implements OnInit, OnDestroy {
   }
 
   private getZoo(): void {
+    if (this.getZooTimeout) {
+      clearTimeout(this.getZooTimeout);
+    }
+
     const getZooRequest = {
       transactionType: {
         value: 1
@@ -71,6 +78,10 @@ export class WebsocketComponent implements OnInit, OnDestroy {
 
     console.log(getZooRequest);
     this.zooWebSocketService.zooSubject.next(getZooRequest);
+
+    if (!this.paused) {
+      this.getZooTimeout = setTimeout(_ => this.getZoo(), 2000);
+    }
   }
 
   public addAnimal() {
@@ -90,13 +101,25 @@ export class WebsocketComponent implements OnInit, OnDestroy {
 
   public viewMessage(message: any) {
     const dialog: MatDialogRef<WebSocketMessageDialogComponent> = this.dialogService.open(
-        WebSocketMessageDialogComponent,
-        {
-          data: {
-            message: message
-          }
+      WebSocketMessageDialogComponent,
+      {
+        data: {
+          message: message
         }
-      );
+      }
+    );
+  }
+
+  public toggle() {
+    this.paused = !this.paused;
+    if (this.paused) {
+      if (this.getZooTimeout) {
+        clearInterval(this.getZooTimeout);
+        this.getZooTimeout = null;
+      }
+    } else {
+      this.getZoo();
+    }
   }
 
   private reset(): void {

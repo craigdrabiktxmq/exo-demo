@@ -15,7 +15,7 @@ public class ZooRESTSubscriber extends ExoSubscriberBase<AsyncResponse> {
 	public void addAnimalTransactionCompleted(ExoNotification<?> notification) {
 		AsyncResponse responder = this.getResponder(notification);
 		if (responder != null) {
-			responder.resume(notification.payload);
+			responder.resume(notification);
 		}
 	}
 	
@@ -23,7 +23,7 @@ public class ZooRESTSubscriber extends ExoSubscriberBase<AsyncResponse> {
 	public void getZooTransactionCompleted(ExoNotification<?> notification) {
 		AsyncResponse responder = this.getResponder(notification);
 		if (responder != null) {
-			responder.resume(notification.payload);
+			responder.resume(notification);
 		}
 	}
 }

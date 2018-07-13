@@ -1,20 +1,17 @@
 .table-container {
-    max-height: 250px;
+    height: 223px;
+    width: 100%;
     overflow-y: scroll;
 }
 
 .table {
     display: table;
+    width: 100%;
 }
 
 .message-row, .message-header {
     display: table-row;
 }
-
-.message-header {
-    border-bottom: 1px solid #666;
-}
-
 
 .table-cell, .table-header {
     display: table-cell;    
@@ -22,6 +19,7 @@
 }
 .table-header {
     color: #666;
+    border-bottom: 1px solid #666;
 }
 
 .table-cell:first-child {

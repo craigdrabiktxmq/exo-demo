@@ -41,7 +41,7 @@ export class HomeComponent implements OnInit {
   }
 
   private refreshZoo() {
-    this.service.getZoo().subscribe(result => this.zoo = result );
+    this.service.getZoo().subscribe(result => this.zoo = result.payload );
   }
 
   private sendShutdown() {

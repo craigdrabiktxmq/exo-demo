@@ -19,6 +19,10 @@
         </div>
       </div>
     </div>  
+    <button mat-raised-button color="accent" (click)="toggle()">
+      <span *ngIf="paused">Resume</span>
+      <span *ngIf="!paused">Pause</span>
+    </button>
   </mat-card-content>
 </mat-card>
 <mat-card>
