@@ -9,11 +9,13 @@
           <div class="table-header">Time</div>
           <div class="table-header">ID</div>
           <div class="table-header">Event</div>
+          <td class="table-header"></td>
         </div>
         <div *ngFor="let message of messages" class="message-row">
           <div class="table-cell">{{message.localTimestamp | date: 'HH:mm:ss.SSS'}}</div>
           <div class="table-cell" >{{message.uuid}}</div>
           <div class="table-cell" >{{message.event}}</div>      
+          <div class="table-cell"><button mat-raised-button (click)="viewMessage(message)">View</button> </div>
         </div>
       </div>
     </div>  

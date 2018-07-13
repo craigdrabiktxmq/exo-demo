@@ -5,7 +5,10 @@ import java.io.Serializable;
 import java.net.URI;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
@@ -23,6 +26,7 @@ import org.glassfish.jersey.jackson.JacksonFeature;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.glassfish.jersey.server.ResourceConfig;
 
+import com.swirlds.platform.Address;
 import com.swirlds.platform.Platform;
 import com.swirlds.platform.SwirldState;
 import com.txmq.exo.config.ExoConfig;
@@ -51,9 +55,10 @@ public class ExoPlatformLocator {
 	private static Platform platform;
 
 	/**
-	 * Pipeline router 
+	 * Pipeline routers 
 	 */
-	private static ExoPipelineRouter pipelineRouter = new ExoPipelineRouter();
+	private static Map<String, ExoPipelineRouter> pipelineRouters = new HashMap<String, ExoPipelineRouter>();
+	//private static ExoPipelineRouter pipelineRouter = new ExoPipelineRouter();
 	
 	/**
 	 * Reference to the block logging manager
@@ -140,6 +145,10 @@ public class ExoPlatformLocator {
 	 */
 	@SuppressWarnings("unchecked")
 	public static synchronized void initFromConfig(Platform platform) {
+		//TEST
+		System.out.println(((ExoState) platform.getState()).getMyName());
+		Address a = platform.getAddress();
+		//TEST
 		ExoPlatformLocator.platform = platform;
 		ExoConfig config = ExoConfig.getConfig();
 		
@@ -241,6 +250,35 @@ public class ExoPlatformLocator {
 	}
 	
 	/**
+	 * Initializes the pipeline router for this node
+	 * This is more complicated than it needs to be to 
+	 * account for multiple nodes running in the same JVM.
+	 */
+	private static synchronized void initPipelineRouter(String[] packages) {
+		ExoPipelineRouter pipelineRouter = new ExoPipelineRouter();
+		pipelineRouter.init(packages);
+		String nodeName = ((ExoState) platform.getState()).getMyName();
+		pipelineRouters.put(nodeName, pipelineRouter);
+	}
+	
+	/**
+	 * Accessor for the Exo pipeline router.  
+	 * @see com.txmq.exo.pipeline.routers.ExoPipelineRouter
+	 */	
+	public static synchronized ExoPipelineRouter getPipelineRouter() {
+		String nodeName = ((ExoState) platform.getState()).getMyName();
+		return pipelineRouters.get(nodeName);
+	}
+	
+	/**
+	 * Accessor for the Exo pipeline router.  
+	 * @see com.txmq.exo.pipeline.routers.ExoPipelineRouter
+	 */	
+	public static synchronized ExoPipelineRouter getPipelineRouter(String nodeName) {
+		return pipelineRouters.get(nodeName);
+	}
+	
+	/**
 	 * Initializes the platform from an exo-condig.json 
 	 * file located using the path parameter.
 	 * @param path
@@ -273,7 +311,7 @@ public class ExoPlatformLocator {
 			e.printStackTrace();
 		}
 
-		pipelineRouter.init(transactionProcessorPackages);
+		initPipelineRouter(transactionProcessorPackages);
 	}
 	
 	
@@ -472,7 +510,7 @@ public class ExoPlatformLocator {
 		}
 		
 		//Process message received handlers
-		pipelineRouter.routeMessageReceived(transaction, preConsensusState);
+		getPipelineRouter().routeMessageReceived(transaction, preConsensusState);
 		
 		//If the transaction was not interrupted, submit it to the platform
 		if (transaction.isInterrupted() == false) {
@@ -482,7 +520,7 @@ public class ExoPlatformLocator {
 				testState.handleTransaction(transactionID, true, timeCreated, serializedTransaction, null);
 			} else {
 				platform.createTransaction(serializedTransaction);
-				pipelineRouter.notifySubmitted(transaction);
+				getPipelineRouter().notifySubmitted(transaction);
 			}
 		}
 	}
@@ -523,14 +561,6 @@ public class ExoPlatformLocator {
 		} else {
 			return testState;
 		}
-	}
-	
-	/**
-	 * Accessor for the Exo pipeline router.  
-	 * @see com.txmq.exo.pipeline.routers.ExoPipelineRouter
-	 */
-	public static ExoPipelineRouter getTransactionRouter() {
-		return pipelineRouter;
 	}
 	
 	/**

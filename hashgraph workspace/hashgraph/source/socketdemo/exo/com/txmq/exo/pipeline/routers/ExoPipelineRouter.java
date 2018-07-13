@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.txmq.exo.core.ExoPlatformLocator;
 import com.txmq.exo.core.ExoState;
 import com.txmq.exo.messaging.ExoMessage;
 import com.txmq.exo.messaging.ExoNotification;
@@ -115,7 +116,7 @@ public class ExoPipelineRouter {
 		try {
 			Serializable result = this.route(message, state, this.messageReceivedRouter);
 			if (message.isInterrupted()) {
-				this.sendNotification(ReportingEvents.transactionComplete, result, message, PipelineStatus.INTERRUPTED);
+				this.sendNotification(ReportingEvents.transactionComplete, result, message, PipelineStatus.INTERRUPTED, state.getMyName());
 			} 
 		} catch (ExoRoutingException e) {
 			/*
@@ -133,9 +134,10 @@ public class ExoPipelineRouter {
 			this.sendNotification(	ReportingEvents.preConsensusResult, 
 									result, 
 									message, 
-									(message.isInterrupted()) ? PipelineStatus.INTERRUPTED : PipelineStatus.OK);
+									(message.isInterrupted()) ? PipelineStatus.INTERRUPTED : PipelineStatus.OK,
+									state.getMyName());
 			if (message.isInterrupted()) {
-				this.sendNotification(ReportingEvents.transactionComplete, result, message, PipelineStatus.INTERRUPTED);
+				this.sendNotification(ReportingEvents.transactionComplete, result, message, PipelineStatus.INTERRUPTED, state.getMyName());
 			} 
 		} catch (ExoRoutingException e) {
 			/*
@@ -147,14 +149,15 @@ public class ExoPipelineRouter {
 	}
 	
 	public void routeExecuteConsensus(ExoMessage<?> message, ExoState state) throws ReflectiveOperationException {
-		//System.out.println("Routing " + message.uuid + " to executeConsensus");
+		System.out.println("Routing " + message.uuid + " to executeConsensus on " + state.getMyName());
 		try {
 			Serializable result = this.route(message, state, this.executeConsensusRouter);
 			this.sendNotification(	ReportingEvents.consensusResult, 
 					result, 
 					message, 
-					(message.isInterrupted()) ? PipelineStatus.INTERRUPTED : PipelineStatus.OK);
-			this.sendNotification(ReportingEvents.transactionComplete, result, message, PipelineStatus.COMPLETED);
+					(message.isInterrupted()) ? PipelineStatus.INTERRUPTED : PipelineStatus.OK,
+					state.getMyName());
+			this.sendNotification(ReportingEvents.transactionComplete, result, message, PipelineStatus.COMPLETED, state.getMyName());
 		} catch (ExoRoutingException e) {
 			/*
 			 * Indicates that something happened during processing that should prevent 
@@ -165,7 +168,7 @@ public class ExoPipelineRouter {
 	}
 	
 	public void notifySubmitted(ExoMessage<?> message) {
-		this.sendNotification(ReportingEvents.submitted, null, message, PipelineStatus.OK);
+		this.sendNotification(ReportingEvents.submitted, null, message, PipelineStatus.OK, ExoPlatformLocator.getState().getMyName());
 	}
 	
 	private Serializable route(ExoMessage<?> message, ExoState state, ExoParameterizedRouter<?> router) throws ExoRoutingException {
@@ -183,7 +186,8 @@ public class ExoPipelineRouter {
 			this.sendNotification(	ReportingEvents.transactionComplete, 
 									e, 
 									message,
-									PipelineStatus.ERROR);
+									PipelineStatus.ERROR,
+									state.getMyName());
 			
 			throw new ExoRoutingException();
 		}	
@@ -194,11 +198,13 @@ public class ExoPipelineRouter {
 	private void sendNotification(	ReportingEvents event, 
 									Serializable payload, 
 									ExoMessage<?> triggeringMessage, 
-									PipelineStatus status) {
+									PipelineStatus status,
+									String nodeName) {
 		this.sendNotification(	new ExoNotification<Serializable>(	event, 
 																	payload, 
 																	status, 
-																	triggeringMessage)
+																	triggeringMessage,
+																	nodeName)
 		);		
 	}
 	

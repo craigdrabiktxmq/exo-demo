@@ -12,6 +12,9 @@ import { ExoModule } from './exo/exo.module';
 import { ExoConfig } from './exo/exo-config';
 import { WebsocketComponent } from './websocket/websocket.component';
 import { ZooWebsocketService } from './zoo-websocket.service';
+import { MatDialogModule } from '@angular/material';
+import { WebSocketMessageDialogComponent } from './web-socket-message-dialog/web-socket-message-dialog.component';
+import { PrettyJsonModule } from 'angular2-prettyjson';
 
 const appRoutes: Routes = [
   { path: 'home', component: HomeComponent },
@@ -37,7 +40,8 @@ const exoConfig:ExoConfig = {
   declarations: [
     AppComponent,
     HomeComponent,
-    WebsocketComponent
+    WebsocketComponent,
+    WebSocketMessageDialogComponent
   ],
   imports: [
     RouterModule.forRoot(appRoutes),
@@ -52,9 +56,12 @@ const exoConfig:ExoConfig = {
     MatRadioModule,
     FormsModule,
     FlexLayoutModule,
+    MatDialogModule,
+    PrettyJsonModule,
     ExoModule.forRoot(exoConfig)
   ],
   providers: [DefaultService, ZooWebsocketService],
-  bootstrap: [AppComponent]
+  bootstrap: [AppComponent],
+  entryComponents: [WebSocketMessageDialogComponent]
 })
 export class AppModule { }

@@ -89,9 +89,9 @@ public class ExoState {
 			ExoMessage<?> message = ExoMessage.deserialize(transaction);
 			if (consensus == false) {
 				//Route the transaction through the pre-consensus part of the pipeline
-				ExoPlatformLocator.getTransactionRouter().routeExecutePreConsensus(message, this);				
+				ExoPlatformLocator.getPipelineRouter(this.myName).routeExecutePreConsensus(message, this);				
 			} else {
-				ExoPlatformLocator.getTransactionRouter().routeExecuteConsensus(message, this);
+				ExoPlatformLocator.getPipelineRouter(this.myName).routeExecuteConsensus(message, this);
 				if (message.isInterrupted() == false) {
 					ExoPlatformLocator.getBlockLogger().addTransaction(message, this.myName);
 				}

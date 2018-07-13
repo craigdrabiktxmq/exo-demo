@@ -2,6 +2,8 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { ZooWebsocketService } from '../zoo-websocket.service';
 import { Subscription } from '../../../node_modules/rxjs/Subscription';
 import { Guid } from 'guid-typescript';
+import { MatDialog, MatDialogRef } from '../../../node_modules/@angular/material';
+import { WebSocketMessageDialogComponent } from '../web-socket-message-dialog/web-socket-message-dialog.component';
 
 @Component({
   selector: 'app-websocket',
@@ -20,7 +22,8 @@ export class WebsocketComponent implements OnInit, OnDestroy {
   private zoo: any;
   private subscription: Subscription;
 
-  constructor(private zooWebSocketService:ZooWebsocketService) { }
+  constructor(private zooWebSocketService: ZooWebsocketService,
+              private dialogService: MatDialog) { }
 
   ngOnInit() {
     this.subscription = 
@@ -83,6 +86,17 @@ export class WebsocketComponent implements OnInit, OnDestroy {
     };
     this.currentTransactionID = addAnimalRequest.uuid;
     this.zooWebSocketService.zooSubject.next(addAnimalRequest);
+  }
+
+  public viewMessage(message: any) {
+    const dialog: MatDialogRef<WebSocketMessageDialogComponent> = this.dialogService.open(
+        WebSocketMessageDialogComponent,
+        {
+          data: {
+            message: message
+          }
+        }
+      );
   }
 
   private reset(): void {
