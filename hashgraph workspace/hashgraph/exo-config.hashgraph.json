@@ -1,9 +1,12 @@
 {
 	"hashgraphConfig": {
-		"transactionTypesClassName": "com.txmq.socketdemo.SocketDemoTransactionTypes",
+		"transactionTypesClassName": "com.txmq.socketdemo.ZooDemoTransactionTypes",
 		"transactionProcessors": [
+			"com.txmq.socketdemo.rest",
+			"com.txmq.socketdemo.websocket",
+			"com.txmq.socketdemo.transactions",
 			"com.txmq.exo.messaging.rest",
-			"com.txmq.socketdemo.transactions"
+			"com.txmq.exo.persistence.transactions"
 		],
 		"socketMessaging": {
 			"port": -1,
