@@ -1,26 +1,16 @@
 <mat-card>
   <mat-card-header>
-    <mat-card-title>Select API</mat-card-title>
-  </mat-card-header>
-  <mat-card-content>    
-    <mat-radio-group [(ngModel)]="useHashgraph">
-      <div fxLayout="row" fxLayoutAlign="space-between">
-        <div fxFlex>
-          <mat-radio-button value="false">Use JAX-RS REST API</mat-radio-button>
-        </div>
-        <div fxFlex>
-          <mat-radio-button value="true">Use REST API Embedded in Hashgraph</mat-radio-button>
+    <mat-card-title>
+      <div fxLayout="row">
+        <div fxFlex="0 0 100%">Add an animal to the zoo</div>
+        <div fxFlex="0 0 200px">
+          <mat-select value="rest" (change)="goToWebsocket()">
+            <mat-option value="rest">Use REST API</mat-option>
+            <mat-option value="websocket">Use Websocket API</mat-option>
+          </mat-select>
         </div>
       </div>
-    </mat-radio-group>
-    <div fxLayout="row" class="field-container">
-      <button mat-raised-button color="accent" (click)="sendShutdown()">Stop Hashgraph</button>
-    </div>
-  </mat-card-content>
-</mat-card>
-<mat-card>
-  <mat-card-header>
-    <mat-card-title>Add an animal to the zoo</mat-card-title>
+    </mat-card-title>
   </mat-card-header>
   <mat-card-content>
   

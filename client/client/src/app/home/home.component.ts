@@ -3,6 +3,7 @@ import { DefaultService } from '../../api/index';
 import { Zoo } from '../../api/model/zoo';
 import { useAnimation } from '@angular/core/src/animation/dsl';
 import { ExoPlatformService } from '../exo/exo-platform.service';
+import { Router } from '../../../node_modules/@angular/router';
 
 @Component({
   selector: 'app-home',
@@ -24,7 +25,9 @@ export class HomeComponent implements OnInit {
     this.service.useHashgraph = useHashgraph === 'true';
   }
 
-  constructor(private service:DefaultService, platform:ExoPlatformService) {
+  constructor(private service:DefaultService, 
+              private router: Router,
+              platform:ExoPlatformService) {
     platform.platformReady.subscribe(_ => {
       this.refreshZoo();
       setInterval(() => this.refreshZoo(), 2000);
@@ -47,7 +50,9 @@ export class HomeComponent implements OnInit {
   private sendShutdown() {
     this.service.stopHashgraph().subscribe(result => alert("Hashgraph shut down!"));
   }
-  
+  private goToWebsocket() {
+    this.router.navigate(['websocket']);
+  }
   ngOnInit() {
   }
 

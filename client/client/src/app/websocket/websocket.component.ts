@@ -4,6 +4,7 @@ import { Subscription } from '../../../node_modules/rxjs/Subscription';
 import { Guid } from 'guid-typescript';
 import { MatDialog, MatDialogRef } from '../../../node_modules/@angular/material';
 import { WebSocketMessageDialogComponent } from '../web-socket-message-dialog/web-socket-message-dialog.component';
+import { Router } from '../../../node_modules/@angular/router';
 
 @Component({
   selector: 'app-websocket',
@@ -26,7 +27,8 @@ export class WebsocketComponent implements OnInit, OnDestroy {
   private paused = false;
 
   constructor(private zooWebSocketService: ZooWebsocketService,
-              private dialogService: MatDialog) { }
+              private dialogService: MatDialog,
+              private router: Router ) { }
 
   ngOnInit() {
     this.subscription = 
@@ -36,7 +38,9 @@ export class WebsocketComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
-    this.subscription.unsubscribe();
+    if (this.getZooTimeout) {
+      clearTimeout(this.getZooTimeout);
+    }
   }
 
   private onWebSocketMessage(data: any): void {
@@ -126,5 +130,9 @@ export class WebsocketComponent implements OnInit, OnDestroy {
     this.currentTransactionID = null;
     this.animalName = '';
     this.animalSpecies = null;
+  }
+
+  private goToREST() {
+    this.router.navigate(['home']);
   }
 }
