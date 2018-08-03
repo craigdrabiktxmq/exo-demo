@@ -12,7 +12,7 @@ Exo implements the following feature set:
 - Socket-based messaging for Java applications
 - REST-based messaging for anything that can make HTTP requests
 - An architecture for structuring transaction processing logic and automated routing of transactions to transaction processors
-- A framework for logging processed transactions to blockchain-based (blockchain the data structure, not blockchain the platform)
+- A framework for logging processed transactions to a blockchain-based transaction log (blockchain the data structure, not blockchain the platform)
 
 ### More Information
 There's more to learn about building Exo applications.  First, check out the (Exo Demo Application)[https://github.com/craigdrabiktxmq/exo-demo] and see how the demo is put together.  It illustrates all of the concepts currently supported by Exo, and is dockerized so you can easily run the application stack.
